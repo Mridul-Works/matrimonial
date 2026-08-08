@@ -12,7 +12,7 @@ export default async function SiteHeader() {
     "block rounded-xl px-3 py-2 font-medium text-zinc-700 hover:bg-pink-50 dark:text-zinc-200 dark:hover:bg-zinc-800";
 
   return (
-    <header className="border-b border-pink-100/60 bg-white/70 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/70">
+    <header className="relative z-50 border-b border-pink-100/60 bg-white/70 backdrop-blur dark:border-zinc-800 dark:bg-zinc-950/70">
       <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-4 sm:px-6">
         <Link
           href="/"
