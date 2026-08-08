@@ -2,10 +2,21 @@ import "server-only";
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
 
-const secretKey = process.env.SESSION_SECRET;
-if (!secretKey) {
-  throw new Error("SESSION_SECRET environment variable is not set.");
+// Falls back to a baked-in dev secret so `npm run build` and local demos
+// work without extra setup. Set a real SESSION_SECRET env var before
+// deploying anywhere real users can reach — a missing/insecure secret here
+// used to throw at module-load time, which crashed the build for every
+// page (including the auto-generated /_not-found) whenever the env var
+// wasn't configured in the build environment.
+const secretKey =
+  process.env.SESSION_SECRET ?? "dev-only-insecure-secret-change-me-1234567890";
+
+if (!process.env.SESSION_SECRET && process.env.NODE_ENV === "production") {
+  console.warn(
+    "[session] SESSION_SECRET is not set — using an insecure default. Set SESSION_SECRET before deploying."
+  );
 }
+
 const encodedKey = new TextEncoder().encode(secretKey);
 
 const COOKIE_NAME = "session";
