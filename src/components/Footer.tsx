@@ -19,10 +19,9 @@ export default function Footer() {
             With the blessings of Baba Sain Bhagat Ji
           </p>
           <p className="mt-1 max-w-xl text-sm text-zinc-500 dark:text-zinc-400">
-            Sain Smajh Matrimonial is offered freely as a service to the Sain
-            Samaj — helping families of our community find suitable,
-            God-blessed matches rooted in faith, tradition, and trust. No
-            fees, no advertisements — only sewa.
+            Sain Smajh Matrimonial is dedicated to the Sain Samaj —
+            helping families of our community find suitable, God-blessed
+            matches rooted in faith, tradition, and trust.
           </p>
         </div>
       </div>
