@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono, Playfair_Display } from "next/font/google";
 import SiteHeader from "@/components/SiteHeader";
+import Footer from "@/components/Footer";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -36,6 +37,7 @@ export default function RootLayout({
       <body className="flex min-h-full min-w-0 flex-col overflow-x-hidden bg-linear-to-b from-pink-50 via-rose-50/50 to-white dark:from-zinc-950 dark:via-black dark:to-black">
         <SiteHeader />
         <main className="flex min-w-0 flex-1 flex-col">{children}</main>
+        <Footer />
       </body>
     </html>
   );
