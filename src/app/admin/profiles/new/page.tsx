@@ -12,14 +12,14 @@ export default function NewProfilePage() {
   const [state, formAction, pending] = useActionState(createProfileAction, undefined);
 
   return (
-    <div className="mx-auto max-w-2xl px-6 py-12">
-      <Link href="/admin" className="text-sm font-medium text-pink-600 dark:text-pink-300">
-        &larr; Back to admin dashboard
+    <div className="max-w-2xl">
+      <Link href="/admin/profiles" className="text-sm font-medium text-pink-600 dark:text-pink-300">
+        &larr; Back to profiles
       </Link>
 
-      <h1 className="mt-4 font-heading text-2xl text-zinc-900 dark:text-zinc-50">
+      <h2 className="mt-3 font-heading text-xl text-zinc-900 dark:text-zinc-50">
         Add a Profile
-      </h1>
+      </h2>
       <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
         Photos aren&apos;t supported yet — profiles show an initials avatar until that
         ships.
@@ -27,7 +27,7 @@ export default function NewProfilePage() {
 
       <form
         action={formAction}
-        className="mt-8 space-y-4 rounded-3xl border border-pink-100/70 bg-white/80 p-6 dark:border-zinc-800 dark:bg-zinc-900/80"
+        className="mt-6 space-y-4 rounded-3xl border border-pink-100/70 bg-white/80 p-6 dark:border-zinc-800 dark:bg-zinc-900/80"
       >
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label="Code No" name="codeNo" placeholder="e.g. 51/26" errors={state?.errors?.codeNo} />
@@ -55,7 +55,10 @@ export default function NewProfilePage() {
           />
         </div>
 
-        <Field label="Profession" name="profession" errors={state?.errors?.profession} />
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <Field label="City" name="city" placeholder="e.g. Ludhiana" errors={state?.errors?.city} />
+          <Field label="Profession" name="profession" errors={state?.errors?.profession} />
+        </div>
 
         <div>
           <label className={labelClasses} htmlFor="education">

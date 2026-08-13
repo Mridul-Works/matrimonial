@@ -23,6 +23,7 @@ export async function createProfileAction(
   const gender = String(formData.get("gender") ?? "");
   const dob = String(formData.get("dob") ?? "");
   const heightLabel = String(formData.get("heightLabel") ?? "").trim();
+  const city = String(formData.get("city") ?? "").trim();
   const profession = String(formData.get("profession") ?? "").trim();
   const educationRaw = String(formData.get("education") ?? "");
   const workExperience = String(formData.get("workExperience") ?? "").trim();
@@ -36,6 +37,7 @@ export async function createProfileAction(
   if (gender !== "male" && gender !== "female") errors.gender = ["Select a gender."];
   if (!dob) errors.dob = ["Date of birth is required."];
   if (!heightLabel) errors.heightLabel = ["Height is required."];
+  if (!city) errors.city = ["City is required."];
   if (!profession) errors.profession = ["Profession is required."];
 
   if (Object.keys(errors).length > 0) {
@@ -53,6 +55,7 @@ export async function createProfileAction(
     gender: gender as "male" | "female",
     dob,
     heightLabel,
+    city,
     education: education.length > 0 ? education : ["Not specified"],
     profession,
     workExperience: workExperience || "Not specified",

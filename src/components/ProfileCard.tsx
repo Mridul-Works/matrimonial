@@ -30,6 +30,7 @@ export default function ProfileCard({
             <p className="text-sm text-zinc-500 dark:text-zinc-400">
               {calculateAge(profile.dob)} yrs &bull; {profile.heightLabel}
             </p>
+            <p className="text-sm text-zinc-500 dark:text-zinc-400">{profile.city}</p>
           </div>
         </div>
 

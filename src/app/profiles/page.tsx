@@ -15,9 +15,11 @@ export default async function ProfilesPage({
   const gender = params.gender === "male" || params.gender === "female" ? params.gender : undefined;
   const minAge = params.minAge ? Number(params.minAge) : undefined;
   const maxAge = params.maxAge ? Number(params.maxAge) : undefined;
+  const sort =
+    params.sort === "age-asc" || params.sort === "age-desc" ? params.sort : "newest";
 
   const [profiles, interestedIds] = await Promise.all([
-    getProfiles({ q: params.q, gender, minAge, maxAge }),
+    getProfiles({ q: params.q, gender, minAge, maxAge, sort }),
     getInterestedProfileIds(session.userId),
   ]);
 

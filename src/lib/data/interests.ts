@@ -8,7 +8,39 @@ export type Interest = {
   createdAt: string;
 };
 
-const SEED_INTERESTS: Interest[] = [];
+// Seeded activity so the admin match-log demos meaningfully out of the box.
+const SEED_INTERESTS: Interest[] = [
+  {
+    id: "seed-int-1",
+    userId: "member-ravi",
+    profileId: "17-26",
+    createdAt: new Date(2026, 0, 7, 11, 20).toISOString(),
+  },
+  {
+    id: "seed-int-2",
+    userId: "member-ravi",
+    profileId: "61-26",
+    createdAt: new Date(2026, 0, 16, 9, 5).toISOString(),
+  },
+  {
+    id: "seed-int-3",
+    userId: "member-pooja",
+    profileId: "08-26",
+    createdAt: new Date(2026, 0, 11, 18, 40).toISOString(),
+  },
+  {
+    id: "seed-int-4",
+    userId: "member-harish",
+    profileId: "23-26",
+    createdAt: new Date(2026, 0, 15, 14, 10).toISOString(),
+  },
+  {
+    id: "seed-int-5",
+    userId: "member-pooja",
+    profileId: "77-26",
+    createdAt: new Date(2026, 0, 17, 20, 55).toISOString(),
+  },
+];
 
 function loadInterests(): Interest[] {
   return readStore("interests", SEED_INTERESTS);

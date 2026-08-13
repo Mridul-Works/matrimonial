@@ -55,6 +55,7 @@ export default async function ProfileDetailPage({
         <dl className="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2">
           <Field label="Date of Birth" value={formatDob(profile.dob)} />
           <Field label="Height" value={profile.heightLabel} />
+          <Field label="City" value={profile.city} />
           <Field label="Profession" value={profile.profession} />
           <Field label="Work Experience" value={profile.workExperience} />
         </dl>

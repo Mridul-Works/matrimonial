@@ -24,6 +24,31 @@ const SEED_USERS: AppUser[] = [
     role: "admin",
     createdAt: new Date(2026, 0, 1).toISOString(),
   },
+  // Demo members so the admin panel has activity to show out of the box.
+  {
+    id: "member-ravi",
+    name: "Ravi Sain",
+    username: "ravi",
+    passwordHash: bcrypt.hashSync("ravi123", 10),
+    role: "member",
+    createdAt: new Date(2026, 0, 6).toISOString(),
+  },
+  {
+    id: "member-pooja",
+    name: "Pooja Devi",
+    username: "pooja",
+    passwordHash: bcrypt.hashSync("pooja123", 10),
+    role: "member",
+    createdAt: new Date(2026, 0, 9).toISOString(),
+  },
+  {
+    id: "member-harish",
+    name: "Harish Kumar",
+    username: "harish",
+    passwordHash: bcrypt.hashSync("harish123", 10),
+    role: "member",
+    createdAt: new Date(2026, 0, 14).toISOString(),
+  },
 ];
 
 function loadUsers(): AppUser[] {
