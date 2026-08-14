@@ -3,7 +3,64 @@
 ===============================================================================
  Who this is for : a community member looking for a match
  Entry point     : http://localhost:3311
- Demo login      : ravi / ravi123   (also: pooja / pooja123, harish / harish123)
+===============================================================================
+
+
+ DEMO CREDENTIALS - LOG IN AND SEE THE MEMBER UI
+-------------------------------------------------------------------------------
+
+ Three member accounts ship with the app. All three see the same screens,
+ but each has a DIFFERENT match history, so "My Matches" looks different
+ for each one. Use them to see the UI in different states.
+
+   +----------+-------------+---------------+--------------------------------+
+   | USERNAME | PASSWORD    | NAME          | WHAT YOU'LL SEE                |
+   +----------+-------------+---------------+--------------------------------+
+   | ravi     | ravi123     | Ravi Sain     | 2 matches - a good "active     |
+   |          |             |               | user" view                     |
+   +----------+-------------+---------------+--------------------------------+
+   | pooja    | pooja123    | Pooja Devi    | 2 matches - different profiles |
+   |          |             |               | than Ravi's                    |
+   +----------+-------------+---------------+--------------------------------+
+   | harish   | harish123   | Harish Kumar  | 1 match - the minimal case     |
+   +----------+-------------+---------------+--------------------------------+
+
+ EXACTLY WHAT EACH ONE'S "MY MATCHES" PAGE CONTAINS:
+
+   ravi / ravi123
+     - Simran Kaur    17/26   Ludhiana,   Boutique Owner
+     - Anjali Sain    61/26   Jaipur,     Staff Nurse
+
+   pooja / pooja123
+     - Aman Sharma    08/26   Chandigarh, Software Engineer
+     - Vikram Sain    77/26   Ambala,     Workshop Owner
+
+   harish / harish123
+     - Priya Verma    23/26   Amritsar,   Doctor
+
+ On /profiles those same listings show a filled pink [ Matched ] button,
+ while every other card shows the outlined [ Express Interest ] button.
+ That is the quickest way to see both button states side by side.
+
+
+ TO SEE THE EMPTY STATE (a brand-new member with no matches):
+   Register a fresh account at /register - any name, username, and password.
+   /matches will then show the "You haven't matched with any profiles yet"
+   screen with a Browse Profiles button.
+
+
+ TO SWITCH BETWEEN ACCOUNTS:
+   Click Logout in the header (or the mobile menu), then log in as the next
+   one. Sessions are per-browser, so an incognito window lets you view two
+   accounts at the same time.
+
+
+ NOTE - THE ADMIN ACCOUNT IS DIFFERENT:
+   admin / admin also works here, but it additionally sees an "Admin" link
+   in the header that members never get. To review the member UI as a member
+   actually experiences it, use one of the three accounts above.
+   The admin journey is documented separately in ADMIN_FLOW.txt.
+
 ===============================================================================
 
 
@@ -68,6 +125,9 @@
 
  Fields:  Username  |  Password
 
+ Use any account from DEMO CREDENTIALS at the top of this file
+ (ravi / ravi123, pooja / pooja123, harish / harish123).
+
    submit
      |
      +--> wrong credentials -> "Invalid username or password."
@@ -77,6 +137,9 @@
                                redirected to /profiles
 
  NOTE: Visiting /login while already signed in redirects you to /profiles.
+ NOTE: The login form is pre-filled with admin / admin as a demo convenience.
+       Clear those boxes to type a member's credentials. (Remove that
+       pre-fill before real users arrive.)
 
 
 -------------------------------------------------------------------------------
