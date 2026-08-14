@@ -29,12 +29,13 @@ export default async function SiteHeader() {
               <Link href="/profiles" className={navLinkClasses}>
                 Browse Profiles
               </Link>
-              <Link href="/matches" className={navLinkClasses}>
-                My Matches
-              </Link>
-              {user.role === "admin" && (
+              {user.role === "admin" ? (
                 <Link href="/admin" className={navLinkClasses}>
                   Admin
+                </Link>
+              ) : (
+                <Link href="/matches" className={navLinkClasses}>
+                  My Matches
                 </Link>
               )}
               <span className="hidden text-zinc-400 lg:inline">
@@ -84,12 +85,13 @@ export default async function SiteHeader() {
                 <Link href="/profiles" className={mobileLinkClasses}>
                   Browse Profiles
                 </Link>
-                <Link href="/matches" className={mobileLinkClasses}>
-                  My Matches
-                </Link>
-                {user.role === "admin" && (
+                {user.role === "admin" ? (
                   <Link href="/admin" className={mobileLinkClasses}>
                     Admin
+                  </Link>
+                ) : (
+                  <Link href="/matches" className={mobileLinkClasses}>
+                    My Matches
                   </Link>
                 )}
                 <form action={logout} className="mt-1 border-t border-pink-100/70 pt-1 dark:border-zinc-800">

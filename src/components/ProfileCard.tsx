@@ -10,10 +10,13 @@ export default function ProfileCard({
   profile,
   isInterested = false,
   redirectTo = "/profiles",
+  showInterest = true,
 }: {
   profile: MatrimonialProfile;
   isInterested?: boolean;
   redirectTo?: string;
+  // Admins oversee rather than participate — pages pass false for them.
+  showInterest?: boolean;
 }) {
   return (
     <div className="group flex flex-col rounded-3xl border border-pink-100/70 bg-white/90 p-6 shadow-sm backdrop-blur-sm transition hover:-translate-y-1 hover:border-pink-200 hover:shadow-lg hover:shadow-pink-100 dark:border-zinc-800 dark:bg-zinc-900/90 dark:hover:shadow-none">
@@ -50,13 +53,15 @@ export default function ProfileCard({
         </span>
       </Link>
 
-      <div className="mt-4 border-t border-pink-100/70 pt-4 dark:border-zinc-800">
-        <InterestButton
-          profileId={profile.id}
-          isInterested={isInterested}
-          redirectTo={redirectTo}
-        />
-      </div>
+      {showInterest && (
+        <div className="mt-4 border-t border-pink-100/70 pt-4 dark:border-zinc-800">
+          <InterestButton
+            profileId={profile.id}
+            isInterested={isInterested}
+            redirectTo={redirectTo}
+          />
+        </div>
+      )}
     </div>
   );
 }

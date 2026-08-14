@@ -1,13 +1,18 @@
 import Link from "next/link";
-import { verifySession } from "@/lib/dal";
+import { redirect } from "next/navigation";
+import { getUser } from "@/lib/dal";
 import { getInterestedProfileIds } from "@/lib/data/interests";
 import { getProfileById, type MatrimonialProfile } from "@/lib/data/profiles";
 import ProfileCard from "@/components/ProfileCard";
 import HeartIcon from "@/components/HeartIcon";
 
 export default async function MatchesPage() {
-  const session = await verifySession();
-  const ids = await getInterestedProfileIds(session.userId);
+  const user = await getUser();
+  if (!user) redirect("/login");
+  // Admins don't participate in matching — their view of interests lives in
+  // the console, where they see everyone's, not a personal list.
+  if (user.role === "admin") redirect("/admin/matches");
+  const ids = await getInterestedProfileIds(user.id);
   const profiles = (await Promise.all(ids.map((id) => getProfileById(id)))).filter(
     (profile): profile is MatrimonialProfile => Boolean(profile)
   );

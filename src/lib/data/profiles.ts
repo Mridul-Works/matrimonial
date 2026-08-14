@@ -15,6 +15,10 @@ export type MatrimonialProfile = {
   family: { label: string; value: string }[];
   partnerPreference: string;
   photoUrl?: string;
+  // Member account that manages this listing (a person often manages a
+  // biodata for themselves or a family member). Links interests back to a
+  // responsible account, which is what makes mutual-match detection possible.
+  ownerUserId?: string;
   createdAt: string;
 };
 
@@ -59,6 +63,7 @@ const SEED_PROFILES: MatrimonialProfile[] = [
     ],
     partnerPreference:
       "Looking for a well-settled, respectful groom from a good family background who supports her working after marriage.",
+    ownerUserId: "member-pooja", // Pooja manages her sister Simran's listing
     createdAt: new Date(2026, 0, 2).toISOString(),
   },
   {
@@ -78,6 +83,7 @@ const SEED_PROFILES: MatrimonialProfile[] = [
     ],
     partnerPreference:
       "Seeking an educated, homely girl who is understanding and supportive, open to settling in Chandigarh.",
+    ownerUserId: "member-harish", // Harish manages his cousin Aman's listing
     createdAt: new Date(2026, 0, 3).toISOString(),
   },
   {
@@ -192,6 +198,7 @@ const SEED_PROFILES: MatrimonialProfile[] = [
     ],
     partnerPreference:
       "Simple living, honest girl who values family; caste no bar within community.",
+    ownerUserId: "member-ravi", // Ravi manages his brother Vikram's listing
     createdAt: new Date(2026, 0, 18).toISOString(),
   },
 ];
@@ -299,6 +306,7 @@ export async function createProfile(input: {
   workExperience: string;
   family: { label: string; value: string }[];
   partnerPreference: string;
+  ownerUserId?: string;
 }): Promise<MatrimonialProfile> {
   const profiles = loadProfiles();
   const profile: MatrimonialProfile = {

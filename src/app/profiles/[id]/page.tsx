@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
-import { verifySession } from "@/lib/dal";
+import { notFound, redirect } from "next/navigation";
+import { getUser } from "@/lib/dal";
 import { calculateAge, formatDob, getProfileById } from "@/lib/data/profiles";
 import { isInterested } from "@/lib/data/interests";
 import Avatar from "@/components/Avatar";
@@ -12,7 +12,9 @@ export default async function ProfileDetailPage({
 }: {
   params: Promise<{ id: string }>;
 }) {
-  const session = await verifySession();
+  const user = await getUser();
+  if (!user) redirect("/login");
+  const isAdmin = user.role === "admin";
   const { id } = await params;
   const profile = await getProfileById(id);
 
@@ -20,7 +22,7 @@ export default async function ProfileDetailPage({
     notFound();
   }
 
-  const interested = await isInterested(session.userId, profile.id);
+  const interested = isAdmin ? false : await isInterested(user.id, profile.id);
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-12">
@@ -41,14 +43,16 @@ export default async function ProfileDetailPage({
             <p className="text-sm text-zinc-500 dark:text-zinc-400">
               {calculateAge(profile.dob)} years old &bull; {profile.heightLabel}
             </p>
-            <div className="mt-4 flex justify-center sm:justify-start">
-              <InterestButton
-                profileId={profile.id}
-                isInterested={interested}
-                redirectTo={`/profiles/${profile.id}`}
-                size="md"
-              />
-            </div>
+            {!isAdmin && (
+              <div className="mt-4 flex justify-center sm:justify-start">
+                <InterestButton
+                  profileId={profile.id}
+                  isInterested={interested}
+                  redirectTo={`/profiles/${profile.id}`}
+                  size="md"
+                />
+              </div>
+            )}
           </div>
         </div>
 

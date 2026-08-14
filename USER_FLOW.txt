@@ -57,9 +57,11 @@
 
 
  NOTE - THE ADMIN ACCOUNT IS DIFFERENT:
-   admin / admin also works here, but it additionally sees an "Admin" link
-   in the header that members never get. To review the member UI as a member
-   actually experiences it, use one of the three accounts above.
+   admin / admin also works here, but the admin is an overseer, not a
+   participant: no Express Interest buttons anywhere, no My Matches link
+   (an "Admin" link takes its place), and /matches redirects to the admin
+   console. To review the member UI as a member actually experiences it,
+   use one of the three accounts above.
    The admin journey is documented separately in ADMIN_FLOW.txt.
 
 ===============================================================================

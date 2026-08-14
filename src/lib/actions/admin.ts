@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/dal";
 import { createProfile } from "@/lib/data/profiles";
+import { findUserByUsername } from "@/lib/data/users";
 
 export type CreateProfileFormState =
   | {
@@ -30,6 +31,7 @@ export async function createProfileAction(
   const brother = String(formData.get("brother") ?? "").trim();
   const sister = String(formData.get("sister") ?? "").trim();
   const partnerPreference = String(formData.get("partnerPreference") ?? "").trim();
+  const managedBy = String(formData.get("managedBy") ?? "").trim();
 
   const errors: Record<string, string[]> = {};
   if (!codeNo) errors.codeNo = ["Code No is required."];
@@ -39,6 +41,20 @@ export async function createProfileAction(
   if (!heightLabel) errors.heightLabel = ["Height is required."];
   if (!city) errors.city = ["City is required."];
   if (!profession) errors.profession = ["Profession is required."];
+
+  // Optional link to the member who manages this listing — enables mutual-
+  // match detection. Must resolve to an existing member account if given.
+  let ownerUserId: string | undefined;
+  if (managedBy) {
+    const owner = await findUserByUsername(managedBy);
+    if (!owner) {
+      errors.managedBy = [`No account with username “${managedBy}”.`];
+    } else if (owner.role !== "member") {
+      errors.managedBy = ["Listings can only be managed by member accounts."];
+    } else {
+      ownerUserId = owner.id;
+    }
+  }
 
   if (Object.keys(errors).length > 0) {
     return { errors };
@@ -64,6 +80,7 @@ export async function createProfileAction(
       { label: "Sister", value: sister || "0" },
     ],
     partnerPreference: partnerPreference || "Not specified",
+    ownerUserId,
   });
 
   revalidatePath("/admin");

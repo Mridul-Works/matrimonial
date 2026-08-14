@@ -1,5 +1,6 @@
 import "server-only";
 import { readStore, writeStore } from "@/lib/data/store";
+import type { MatrimonialProfile } from "@/lib/data/profiles";
 
 export type Interest = {
   id: string;
@@ -80,4 +81,63 @@ export async function toggleInterest(userId: string, profileId: string): Promise
 
 export async function getAllInterests(): Promise<Interest[]> {
   return [...loadInterests()].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+}
+
+export type MutualMatch = {
+  profileA: MatrimonialProfile;
+  profileB: MatrimonialProfile;
+  // The later of the two interest timestamps — the moment it became mutual.
+  matchedAt: string;
+};
+
+// A mutual match exists between listings P1 and P2 when P1's managing member
+// expressed interest in P2 AND P2's managing member expressed interest in P1.
+// Listings without a managing member can receive interest but can never
+// reciprocate, so they never appear here. Pure function over already-loaded
+// data — callers have users/profiles/interests in hand anyway.
+export function findMutualMatches(
+  interests: Interest[],
+  profiles: MatrimonialProfile[]
+): MutualMatch[] {
+  const byOwner = new Map<string, MatrimonialProfile[]>();
+  for (const p of profiles) {
+    if (!p.ownerUserId) continue;
+    const list = byOwner.get(p.ownerUserId) ?? [];
+    list.push(p);
+    byOwner.set(p.ownerUserId, list);
+  }
+
+  const liked = new Map<string, Interest>(); // "userId->profileId" -> interest
+  for (const i of interests) {
+    liked.set(`${i.userId}->${i.profileId}`, i);
+  }
+
+  const matches: MutualMatch[] = [];
+  const seenPairs = new Set<string>();
+
+  for (const i of interests) {
+    const targetProfile = profiles.find((p) => p.id === i.profileId);
+    if (!targetProfile?.ownerUserId) continue;
+
+    // Does the target's manager like any listing managed by the sender?
+    for (const senderProfile of byOwner.get(i.userId) ?? []) {
+      const reciprocal = liked.get(
+        `${targetProfile.ownerUserId}->${senderProfile.id}`
+      );
+      if (!reciprocal) continue;
+
+      const pairKey = [senderProfile.id, targetProfile.id].sort().join("|");
+      if (seenPairs.has(pairKey)) continue;
+      seenPairs.add(pairKey);
+
+      matches.push({
+        profileA: senderProfile,
+        profileB: targetProfile,
+        matchedAt:
+          i.createdAt > reciprocal.createdAt ? i.createdAt : reciprocal.createdAt,
+      });
+    }
+  }
+
+  return matches.sort((a, b) => b.matchedAt.localeCompare(a.matchedAt));
 }

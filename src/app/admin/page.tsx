@@ -2,7 +2,7 @@ import Link from "next/link";
 import { requireAdmin } from "@/lib/dal";
 import { getAllUsers } from "@/lib/data/users";
 import { getProfiles } from "@/lib/data/profiles";
-import { getAllInterests } from "@/lib/data/interests";
+import { findMutualMatches, getAllInterests } from "@/lib/data/interests";
 import { IdBadge } from "@/components/admin/AdminTable";
 
 function formatDateTime(iso: string): string {
@@ -26,14 +26,21 @@ export default async function AdminOverviewPage() {
   const userById = new Map(users.map((u) => [u.id, u]));
   const profileById = new Map(profiles.map((p) => [p.id, p]));
   const members = users.filter((u) => u.role === "member");
+  const mutualMatches = findMutualMatches(interests, profiles);
   const recent = interests.slice(0, 6);
 
   return (
     <div>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
         <StatCard label="Registered members" value={members.length} href="/admin/members" />
         <StatCard label="Profiles listed" value={profiles.length} href="/admin/profiles" />
         <StatCard label="Interests expressed" value={interests.length} href="/admin/matches" />
+        <StatCard
+          label="Mutual matches"
+          value={mutualMatches.length}
+          href="/admin/matches"
+          highlight
+        />
       </div>
 
       <section className="mt-8">
@@ -81,11 +88,25 @@ export default async function AdminOverviewPage() {
   );
 }
 
-function StatCard({ label, value, href }: { label: string; value: number; href: string }) {
+function StatCard({
+  label,
+  value,
+  href,
+  highlight = false,
+}: {
+  label: string;
+  value: number;
+  href: string;
+  highlight?: boolean;
+}) {
   return (
     <Link
       href={href}
-      className="rounded-2xl border border-pink-100/70 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:border-pink-200 hover:shadow-md dark:border-zinc-800 dark:bg-zinc-900"
+      className={`rounded-2xl border p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md ${
+        highlight
+          ? "border-pink-300 bg-linear-to-br from-pink-50 to-rose-50 dark:border-pink-800 dark:from-pink-950/40 dark:to-zinc-900"
+          : "border-pink-100/70 bg-white hover:border-pink-200 dark:border-zinc-800 dark:bg-zinc-900"
+      }`}
     >
       <p className="text-3xl font-semibold text-pink-600 tabular-nums dark:text-pink-300">
         {value}

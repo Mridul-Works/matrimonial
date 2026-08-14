@@ -1,4 +1,5 @@
-import { verifySession } from "@/lib/dal";
+import { redirect } from "next/navigation";
+import { getUser } from "@/lib/dal";
 import { getProfiles } from "@/lib/data/profiles";
 import { getInterestedProfileIds } from "@/lib/data/interests";
 import ProfileCard from "@/components/ProfileCard";
@@ -9,7 +10,9 @@ export default async function ProfilesPage({
 }: {
   searchParams: Promise<ProfileSearchParams>;
 }) {
-  const session = await verifySession();
+  const user = await getUser();
+  if (!user) redirect("/login");
+  const isAdmin = user.role === "admin";
   const params = await searchParams;
 
   const gender = params.gender === "male" || params.gender === "female" ? params.gender : undefined;
@@ -20,7 +23,7 @@ export default async function ProfilesPage({
 
   const [profiles, interestedIds] = await Promise.all([
     getProfiles({ q: params.q, gender, minAge, maxAge, sort }),
-    getInterestedProfileIds(session.userId),
+    isAdmin ? Promise.resolve([]) : getInterestedProfileIds(user.id),
   ]);
 
   return (
@@ -49,6 +52,7 @@ export default async function ProfilesPage({
               key={profile.id}
               profile={profile}
               isInterested={interestedIds.includes(profile.id)}
+              showInterest={!isAdmin}
             />
           ))}
         </div>

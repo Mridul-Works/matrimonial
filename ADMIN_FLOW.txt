@@ -95,6 +95,33 @@
 
  *** This is the "who tried to match with whom" screen. ***
 
+ It has TWO sections: MUTUAL MATCHES on top, then the full interest log.
+
+ SECTION A - MUTUAL MATCHES (both sides said yes)
+ ------------------------------------------------
+ Some listings are linked to the member account that manages them (a person
+ often manages a biodata for themselves or a family member - the "Managed By"
+ column in the Profiles tab). When listing P1's manager likes listing P2 AND
+ P2's manager likes P1, that pair becomes a MUTUAL MATCH.
+
+   [heart] Mutual Matches  (1)
+   +--------------------------------------------------------------+
+   |  Simran Kaur                 [heart]            Vikram Sain  |
+   |  17/26  Ludhiana             MUTUAL          77/26  Ambala   |
+   |  via Pooja Devi (pooja)               via Ravi Sain (ravi)   |
+   |                                                              |
+   |          Became mutual on 17 Jan 2026, 08:55 pm              |
+   +--------------------------------------------------------------+
+
+ In the seed data: Ravi (managing Vikram's listing) liked Simran's listing,
+ and Pooja (managing Simran's listing) liked Vikram's listing -> mutual.
+ These are the families the admin should call first.
+
+ Listings with no managing member can receive interest but can never
+ reciprocate, so they never appear here - only in the log below.
+
+ SECTION B - ALL INTEREST ACTIVITY (one-directional log)
+ -------------------------------------------------------
  The complete interest log, newest first, with both sides identified.
 
    5 interests expressed in total. Newest first.
@@ -231,6 +258,23 @@
 
 
 -------------------------------------------------------------------------------
+ THE ADMIN IS AN OVERSEER, NOT A PARTICIPANT
+-------------------------------------------------------------------------------
+
+ The admin account deliberately CANNOT take part in matching:
+
+ - No "Express Interest" buttons anywhere - not on cards, not on detail
+   pages. The admin browses listings read-only.
+ - No "My Matches" link in the navigation (replaced by "Admin"); typing
+   /matches directly redirects to /admin/matches.
+ - Enforced server-side too: the interest action checks the role and
+   silently refuses admin sessions, so even a hand-crafted form POST
+   cannot create an interest from the admin account.
+
+ The admin observes everyone's activity; members do the liking.
+
+
+-------------------------------------------------------------------------------
  WHAT THE ADMIN CANNOT DO (YET)
 -------------------------------------------------------------------------------
 
@@ -247,20 +291,25 @@
 
  STEP 3  overview counts   -> getAllUsers() + getProfiles() + getAllInterests()
  STEP 4  match activity    -> lib/data/interests.ts   getAllInterests()
+                              + findMutualMatches(interests, profiles)
  STEP 5  profiles table    -> lib/data/profiles.ts    getProfiles()
  STEP 6  members table     -> lib/data/users.ts       getAllUsers()
  STEP 7  add profile       -> lib/data/profiles.ts    createProfile()
 
  Admin screens join these three sets in memory (member -> interest -> profile).
  With a real database those joins become a single query per screen, but the
- page components stay exactly as they are.
+ page components stay exactly as they are. findMutualMatches() is a pure
+ function over the loaded data; in SQL it becomes a self-join on interests
+ through profiles.owner_user_id.
 
  SUGGESTED SCHEMA WHEN MIGRATING
  -------------------------------
    users      ( id, name, username, password_hash, role, created_at )
    profiles   ( id, code_no, name, gender, dob, height_label, city,
                 education[], profession, work_experience, family[],
-                partner_preference, photo_url, created_at )
+                partner_preference, photo_url,
+                owner_user_id -> users.id NULL,   <- "managed by"; enables
+                created_at )                         mutual-match detection
    interests  ( id, user_id -> users.id, profile_id -> profiles.id,
                 created_at )
                 UNIQUE (user_id, profile_id)   <- makes the toggle safe

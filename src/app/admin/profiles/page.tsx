@@ -2,6 +2,7 @@ import Link from "next/link";
 import { requireAdmin } from "@/lib/dal";
 import { calculateAge, formatDob, getProfiles } from "@/lib/data/profiles";
 import { getAllInterests } from "@/lib/data/interests";
+import { getAllUsers } from "@/lib/data/users";
 import { AdminTable, IdBadge } from "@/components/admin/AdminTable";
 import AdminSearch from "@/components/admin/AdminSearch";
 
@@ -13,7 +14,12 @@ export default async function AdminProfilesPage({
   await requireAdmin();
   const { q } = await searchParams;
 
-  const [profiles, interests] = await Promise.all([getProfiles(), getAllInterests()]);
+  const [profiles, interests, users] = await Promise.all([
+    getProfiles(),
+    getAllInterests(),
+    getAllUsers(),
+  ]);
+  const userById = new Map(users.map((u) => [u.id, u]));
 
   const receivedCount = new Map<string, number>();
   for (const interest of interests) {
@@ -46,23 +52,33 @@ export default async function AdminProfilesPage({
 
       <div className="mt-4">
         <AdminTable
-          columns={["Code No", "Name", "Gender", "Age", "City", "Profession", "Interests Received", "Added"]}
-          rows={filtered.map((p) => [
-            <IdBadge key="code">{p.codeNo}</IdBadge>,
-            <Link
-              key="name"
-              href={`/profiles/${p.id}`}
-              className="font-medium text-pink-600 hover:underline dark:text-pink-300"
-            >
-              {p.name}
-            </Link>,
-            p.gender === "male" ? "Male" : "Female",
-            <span key="age" className="tabular-nums">{calculateAge(p.dob)}</span>,
-            p.city,
-            p.profession,
-            <span key="rec" className="tabular-nums">{receivedCount.get(p.id) ?? 0}</span>,
-            formatDob(p.createdAt),
-          ])}
+          columns={["Code No", "Name", "Gender", "Age", "City", "Profession", "Managed By", "Interests Received", "Added"]}
+          rows={filtered.map((p) => {
+            const manager = p.ownerUserId ? userById.get(p.ownerUserId) : undefined;
+            return [
+              <IdBadge key="code">{p.codeNo}</IdBadge>,
+              <Link
+                key="name"
+                href={`/profiles/${p.id}`}
+                className="font-medium text-pink-600 hover:underline dark:text-pink-300"
+              >
+                {p.name}
+              </Link>,
+              p.gender === "male" ? "Male" : "Female",
+              <span key="age" className="tabular-nums">{calculateAge(p.dob)}</span>,
+              p.city,
+              p.profession,
+              manager ? (
+                <span key="mgr">
+                  {manager.name} <IdBadge>{manager.username}</IdBadge>
+                </span>
+              ) : (
+                <span key="mgr" className="text-zinc-400">—</span>
+              ),
+              <span key="rec" className="tabular-nums">{receivedCount.get(p.id) ?? 0}</span>,
+              formatDob(p.createdAt),
+            ];
+          })}
           emptyLabel={needle ? "No profiles match that search." : "No profiles yet."}
         />
       </div>

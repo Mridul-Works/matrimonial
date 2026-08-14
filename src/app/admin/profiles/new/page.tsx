@@ -88,6 +88,19 @@ export default function NewProfilePage() {
           <textarea id="partnerPreference" name="partnerPreference" rows={3} className={inputClasses} />
         </div>
 
+        <div>
+          <Field
+            label="Managed by (member username, optional)"
+            name="managedBy"
+            placeholder="e.g. ravi"
+            errors={state?.errors?.managedBy}
+          />
+          <p className="mt-1 text-xs text-zinc-400 dark:text-zinc-500">
+            Link this listing to the member who manages it. Mutual matches can
+            only be detected for linked listings.
+          </p>
+        </div>
+
         {state?.message && (
           <p className="text-sm text-red-600" role="alert">
             {state.message}
