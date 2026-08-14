@@ -1,0 +1,268 @@
+===============================================================================
+ SAIN SMAJH MATRIMONIAL - ADMIN FLOW
+===============================================================================
+ Who this is for : the person running the matrimonial service
+ Entry point     : http://localhost:3311/login
+ Demo login      : admin / admin
+===============================================================================
+
+
+ OVERVIEW OF THE JOURNEY
+-------------------------------------------------------------------------------
+
+                            LOGIN (admin account)
+                                    |
+                                    v
+                          +-------------------+
+                          |  ADMIN CONSOLE    |
+                          +-------------------+
+                                    |
+        +-----------------+---------+---------+-----------------+
+        v                 v                   v                 v
+    OVERVIEW        MATCH ACTIVITY        PROFILES           MEMBERS
+   (the pulse)     (who liked whom)   (the catalogue)    (the accounts)
+                                            |
+                                            v
+                                      ADD A PROFILE
+
+
+-------------------------------------------------------------------------------
+ STEP 1 - LOG IN AS ADMIN                                             [ /login ]
+-------------------------------------------------------------------------------
+
+ Username: admin      Password: admin
+
+ On success the header gains an extra "Admin" link that members never see.
+
+ SECURITY NOTE - admin access is checked twice, independently:
+   1. proxy.ts  - a fast cookie check at the edge; bounces anonymous visitors.
+   2. requireAdmin() inside each admin page - the real gate. It re-verifies
+      the session AND looks up the stored role.
+   A logged-in member who types /admin directly is redirected to /profiles.
+
+
+-------------------------------------------------------------------------------
+ STEP 2 - THE CONSOLE SHELL                                           [ /admin ]
+-------------------------------------------------------------------------------
+
+ Every admin screen shares this frame:
+
+   +-----------------------------------------------------------+
+   |  [heart] Admin Panel                     [ + Add Profile ] |
+   |  Sain Smajh Console                                        |
+   |                                                            |
+   |  [Overview]  Match Activity   Profiles   Members           |
+   |  ==========                                                |
+   +-----------------------------------------------------------+
+   |                                                            |
+   |                  (the active tab renders here)             |
+   |                                                            |
+   +-----------------------------------------------------------+
+
+ "+ Add Profile" is reachable from every tab, not buried inside one.
+ On mobile the tab row scrolls sideways; tables scroll inside their own box.
+
+
+-------------------------------------------------------------------------------
+ STEP 3 - TAB 1: OVERVIEW                                             [ /admin ]
+-------------------------------------------------------------------------------
+
+ The at-a-glance health of the service. Every stat card is clickable and
+ jumps to the tab that explains it.
+
+   +------------------+  +------------------+  +------------------+
+   |        3         |  |        9         |  |        5         |
+   | Registered       |  | Profiles listed  |  | Interests        |
+   | members          |  |                  |  | expressed        |
+   +------------------+  +------------------+  +------------------+
+        (-> Members)         (-> Profiles)       (-> Match Activity)
+
+   Latest Match Activity                              View all ->
+   +-----------------------------------------------------------+
+   | Pooja Devi  [heart]  Vikram Sain   77/26   17 Jan, 08:55 pm|
+   | Ravi Sain   [heart]  Anjali Sain   61/26   16 Jan, 09:05 am|
+   | Harish Kumar[heart]  Priya Verma   23/26   15 Jan, 02:10 pm|
+   | Pooja Devi  [heart]  Aman Sharma   08/26   11 Jan, 06:40 pm|
+   | Ravi Sain   [heart]  Simran Kaur   17/26   07 Jan, 11:20 am|
+   +-----------------------------------------------------------+
+
+ Shows the six most recent interests. For the full history -> STEP 4.
+
+
+-------------------------------------------------------------------------------
+ STEP 4 - TAB 2: MATCH ACTIVITY                               [ /admin/matches ]
+-------------------------------------------------------------------------------
+
+ *** This is the "who tried to match with whom" screen. ***
+
+ The complete interest log, newest first, with both sides identified.
+
+   5 interests expressed in total. Newest first.
+                                    [ search by member or profile ] [Search]
+
+   +-------------------+----------------------+---------+-------------------+
+   | MEMBER (ID)       | EXPRESSED INTEREST IN| PROFILE | WHEN              |
+   |                   |                      | CODE    |                   |
+   +-------------------+----------------------+---------+-------------------+
+   | Pooja Devi        | Vikram Sain          |  77/26  | 17 Jan 2026,      |
+   |   member-pooja    |                      |         | 08:55 pm          |
+   +-------------------+----------------------+---------+-------------------+
+   | Ravi Sain         | Anjali Sain          |  61/26  | 16 Jan 2026,      |
+   |   member-ravi     |                      |         | 09:05 am          |
+   +-------------------+----------------------+---------+-------------------+
+   | Harish Kumar      | Priya Verma          |  23/26  | 15 Jan 2026,      |
+   |   member-harish   |                      |         | 02:10 pm          |
+   +-------------------+----------------------+---------+-------------------+
+   | Pooja Devi        | Aman Sharma          |  08/26  | 11 Jan 2026,      |
+   |   member-pooja    |                      |         | 06:40 pm          |
+   +-------------------+----------------------+---------+-------------------+
+   | Ravi Sain         | Simran Kaur          |  17/26  | 07 Jan 2026,      |
+   |   member-ravi     |                      |         | 11:20 am          |
+   +-------------------+----------------------+---------+-------------------+
+
+ EACH ROW ANSWERS: which member, which listing, which code number, exactly when.
+
+ SEARCH works from either direction:
+   - type a member's name, username, or ID  -> everything that person liked
+   - type a profile name or code number      -> everyone who liked that listing
+
+   Example: searching "pooja"  -> only Pooja Devi's 2 interests
+            searching "77/26"  -> only who expressed interest in Vikram Sain
+
+ Profile names are links - click to open the listing the member saw.
+
+ TYPICAL ADMIN TASK:
+   "The Sharma family asked who's interested in their son (08/26)."
+     -> Match Activity -> search "08/26" -> Pooja Devi, 11 Jan, 06:40 pm.
+
+
+-------------------------------------------------------------------------------
+ STEP 5 - TAB 3: PROFILES                                    [ /admin/profiles ]
+-------------------------------------------------------------------------------
+
+ The whole catalogue, keyed by code number, with demand shown per listing.
+
+   9 profiles listed.        [ search by code, name, city ] [Search]
+
+   +--------+---------------+--------+-----+-----------+--------------+--------+
+   | CODE   | NAME          | GENDER | AGE | CITY      | PROFESSION   |INTEREST|
+   |  NO    |               |        |     |           |              |RECEIVED|
+   +--------+---------------+--------+-----+-----------+--------------+--------+
+   | 77/26  | Vikram Sain   | Male   | 36  | Ambala    | Workshop O.. |   1    |
+   | 61/26  | Anjali Sain   | Female | 27  | Jaipur    | Staff Nurse  |   1    |
+   | 56/26  | Rahul Nagpal  | Male   | 29  | Gurugram  | Accountant   |   0    |
+   | 23/26  | Priya Verma   | Female | 27  | Amritsar  | Doctor       |   1    |
+   | 31/26  | Gurpreet Sing.| Male   | 31  | Patiala   | Restaurant M.|   0    |
+   | 12/26  | Neha Kumari   | Female | 31  | Delhi     | School Teach.|   0    |
+   | 08/26  | Aman Sharma   | Male   | 35  | Chandigarh| Software Eng.|   1    |
+   | 17/26  | Simran Kaur   | Female | 30  | Ludhiana  | Boutique Own.|   1    |
+   | 42/26  | Sarbjeet Sing.| Male   | 32  | Jalandhar | Electrician  |   0    |
+   +--------+---------------+--------+-----+-----------+--------------+--------+
+
+ "INTEREST RECEIVED" tells you which listings are getting attention and which
+ are being overlooked - useful when advising a family.
+
+ Names link through to the live profile page as a member sees it.
+
+
+-------------------------------------------------------------------------------
+ STEP 6 - TAB 4: MEMBERS                                     [ /admin/members ]
+-------------------------------------------------------------------------------
+
+ *** This is the "list of everyone, by ID" screen. ***
+
+   4 accounts registered.     [ search by ID, name, username ] [Search]
+
+   +-----------------+---------------+-----------+----------+----------+---------+
+   | ID              | NAME          | USERNAME  | ROLE     | INTERESTS| JOINED  |
+   |                 |               |           |          | SENT     |         |
+   +-----------------+---------------+-----------+----------+----------+---------+
+   | member-harish   | Harish Kumar  | harish    | [member] |    1     | 14 Jan  |
+   | member-pooja    | Pooja Devi    | pooja     | [member] |    2     | 09 Jan  |
+   | member-ravi     | Ravi Sain     | ravi      | [member] |    2     | 06 Jan  |
+   | admin           | Admin         | admin     | [admin]  |    0     | 01 Jan  |
+   +-----------------+---------------+-----------+----------+----------+---------+
+
+ Every account appears here, admins included, each with its unique ID.
+ Role is colour-coded: pink = member, amber = admin.
+ "INTERESTS SENT" shows how active each member is.
+
+ WHY THIS SAYS 4 BUT OVERVIEW SAYS 3: the Overview card counts members only
+ (people looking for a match). This tab lists every account, admins included.
+ Not a bug - two deliberately different questions.
+
+ Newly registered members appear at the top automatically.
+
+
+-------------------------------------------------------------------------------
+ STEP 7 - ADD A PROFILE                                  [ /admin/profiles/new ]
+-------------------------------------------------------------------------------
+
+ Reached by "+ Add Profile" from any tab.
+
+   +-----------------------------------------------------------+
+   |  Add a Profile                                            |
+   |  Photos aren't supported yet - profiles show an initials  |
+   |  avatar until that ships.                                 |
+   +-----------------------------------------------------------+
+   |  Code No *          |  Full Name *                        |
+   |  Gender *  | Date of Birth * | Height *                   |
+   |  City *             |  Profession *                       |
+   |  Educational Qualification (one per line)                 |
+   |  Work Experience                                          |
+   |  Brother(s)         |  Sister(s)                          |
+   |  Partner Preference                                       |
+   |                                                           |
+   |  [        Add Profile        ]                            |
+   +-----------------------------------------------------------+
+                     ( * = required )
+
+   submit
+     |
+     +--> missing required field -> error shown under that field, nothing saved
+     |
+     +--> valid -> profile saved
+                   -> redirected to the Overview tab
+                   -> the listing is immediately live for members
+                      and appears in the Profiles tab
+
+ The Server Action re-checks admin rights before writing - a non-admin
+ cannot create a profile even by posting the form directly.
+
+
+-------------------------------------------------------------------------------
+ WHAT THE ADMIN CANNOT DO (YET)
+-------------------------------------------------------------------------------
+
+ - Edit or delete an existing profile   (next feature to build)
+ - Delete or suspend a member account
+ - Remove an interest on a member's behalf
+ - Upload photos
+ - Export the tables to CSV / Excel
+
+
+===============================================================================
+ BACKEND HOOKS - where a real database plugs into this flow
+===============================================================================
+
+ STEP 3  overview counts   -> getAllUsers() + getProfiles() + getAllInterests()
+ STEP 4  match activity    -> lib/data/interests.ts   getAllInterests()
+ STEP 5  profiles table    -> lib/data/profiles.ts    getProfiles()
+ STEP 6  members table     -> lib/data/users.ts       getAllUsers()
+ STEP 7  add profile       -> lib/data/profiles.ts    createProfile()
+
+ Admin screens join these three sets in memory (member -> interest -> profile).
+ With a real database those joins become a single query per screen, but the
+ page components stay exactly as they are.
+
+ SUGGESTED SCHEMA WHEN MIGRATING
+ -------------------------------
+   users      ( id, name, username, password_hash, role, created_at )
+   profiles   ( id, code_no, name, gender, dob, height_label, city,
+                education[], profession, work_experience, family[],
+                partner_preference, photo_url, created_at )
+   interests  ( id, user_id -> users.id, profile_id -> profiles.id,
+                created_at )
+                UNIQUE (user_id, profile_id)   <- makes the toggle safe
+
+===============================================================================

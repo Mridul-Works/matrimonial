@@ -1,0 +1,239 @@
+===============================================================================
+ SAIN SMAJH MATRIMONIAL - MEMBER (AUDIENCE) FLOW
+===============================================================================
+ Who this is for : a community member looking for a match
+ Entry point     : http://localhost:3311
+ Demo login      : ravi / ravi123   (also: pooja / pooja123, harish / harish123)
+===============================================================================
+
+
+ OVERVIEW OF THE JOURNEY
+-------------------------------------------------------------------------------
+
+     LANDING  ->  REGISTER / LOGIN  ->  BROWSE  ->  PROFILE  ->  INTEREST
+                                          ^                          |
+                                          |                          v
+                                          +-------- MY MATCHES <-----+
+
+
+-------------------------------------------------------------------------------
+ STEP 1 - LANDING PAGE                                                     [ / ]
+-------------------------------------------------------------------------------
+
+ Visitor arrives at the home page.
+
+   +-----------------------------------------------------------+
+   |  [heart] Sain Smajh Matrimonial      Login  [ Register ]   |
+   +-----------------------------------------------------------+
+   |                                                           |
+   |        (full-screen photo of a couple, Patrika Gate)      |
+   |                                                           |
+   |        Find a LIFE PARTNER rooted in family & tradition   |
+   |                                                           |
+   |        [ Create Free Account ]   [ Login ]                |
+   |                                                           |
+   +-----------------------------------------------------------+
+   |  Private & Login-Only | Complete Details | Free to Join    |
+   +-----------------------------------------------------------+
+   |  [photo] With the blessings of Baba Sain Bhagat Ji         |
+   +-----------------------------------------------------------+
+
+ NOTE: No profiles are visible here. Profiles are login-only, by design.
+
+ DECISION:
+   Already have an account? ------> go to STEP 2b (Login)
+   New visitor?             ------> go to STEP 2a (Register)
+
+
+-------------------------------------------------------------------------------
+ STEP 2a - REGISTER                                                [ /register ]
+-------------------------------------------------------------------------------
+
+ Fields:  Full name  |  Username  |  Password
+
+   submit
+     |
+     +--> validation fails  -> error shown under the offending field
+     |                         (name too short / username taken / weak password)
+     |
+     +--> validation passes -> account created with role = "member"
+                               password stored bcrypt-hashed (never plain)
+                               session cookie set
+                               redirected to /profiles
+
+
+-------------------------------------------------------------------------------
+ STEP 2b - LOGIN                                                      [ /login ]
+-------------------------------------------------------------------------------
+
+ Fields:  Username  |  Password
+
+   submit
+     |
+     +--> wrong credentials -> "Invalid username or password."
+     |                         (deliberately vague - does not reveal which)
+     |
+     +--> correct           -> session cookie set (7-day JWT, httpOnly)
+                               redirected to /profiles
+
+ NOTE: Visiting /login while already signed in redirects you to /profiles.
+
+
+-------------------------------------------------------------------------------
+ STEP 3 - BROWSE PROFILES                                          [ /profiles ]
+-------------------------------------------------------------------------------
+
+ The main member screen. Nine seeded profiles ship with the app.
+
+   +-----------------------------------------------------------+
+   |  Browse Profiles                                          |
+   |                                                           |
+   |  [ search box.................. ] [gender v] [min] [max]  |
+   |  [ Search ]  [ Clear ]              Sort by [ Newest v ]  |
+   +-----------------------------------------------------------+
+   |  9 profiles found.                                        |
+   |                                                           |
+   |  +-------------+  +-------------+  +-------------+        |
+   |  | (VS) 77/26  |  | (AS) 61/26  |  | (RN) 56/26  |        |
+   |  | Vikram Sain |  | Anjali Sain |  | Rahul Nagpal|        |
+   |  | 36 yrs      |  | 27 yrs      |  | 29 yrs      |        |
+   |  | Ambala      |  | Jaipur      |  | Gurugram    |        |
+   |  | Education.. |  | Education.. |  | Education.. |        |
+   |  | Profession..|  | Profession..|  | Profession..|        |
+   |  | View full > |  | View full > |  | View full > |        |
+   |  | [ Interest ]|  | [ Interest ]|  | [ Interest ]|        |
+   |  +-------------+  +-------------+  +-------------+        |
+   |               ... 6 more profiles ...                     |
+   +-----------------------------------------------------------+
+
+ SEARCH matches against: name, profession, city, education, code number.
+ FILTERS: gender (any / male / female), minimum age, maximum age.
+ SORT:    newest first (default) | age low-to-high | age high-to-low.
+
+ Filters live in the URL, so a search can be bookmarked or shared:
+   /profiles?q=doctor&gender=female&minAge=25&maxAge=32&sort=age-asc
+
+ Two things a member can do from a card:
+   (a) "View full profile"  -> STEP 4
+   (b) "Express Interest"   -> STEP 5 (without leaving the page)
+
+
+-------------------------------------------------------------------------------
+ STEP 4 - VIEW A FULL PROFILE                                 [ /profiles/:id ]
+-------------------------------------------------------------------------------
+
+ The complete biodata, laid out as a community matrimonial listing:
+
+   <- Back to all profiles
+
+   +-----------------------------------------------------------+
+   |   ( SS )    Code No: 42/26                                |
+   |             Sarbjeet Singh                                |
+   |             32 years old * 5'11" (180 cm)                 |
+   |             [ Express Interest ]                          |
+   +-----------------------------------------------------------+
+   |  DATE OF BIRTH     04 November 1993                       |
+   |  HEIGHT            5'11" (180 cm)                         |
+   |  CITY              Jalandhar                              |
+   |  PROFESSION        Electrician                            |
+   |  WORK EXPERIENCE   Worked as an Electrician in Dubai...   |
+   +-----------------------------------------------------------+
+   |  EDUCATIONAL QUALIFICATION                                |
+   |   - Senior Secondary (+2)                                 |
+   |   - ITI - Electrician                                     |
+   +-----------------------------------------------------------+
+   |  FAMILY DETAILS                                           |
+   |   Brother: 1 (Married)     Sister: 1 (Married)            |
+   +-----------------------------------------------------------+
+   |  PARTNER PREFERENCE                                       |
+   |   "Looking for a simple, caring, and family-oriented      |
+   |    girl who values family traditions and relationships."  |
+   +-----------------------------------------------------------+
+
+ NOTE: Photos are not supported yet - a coloured initials circle is shown
+       instead. The field exists in the data model for when they are added.
+
+
+-------------------------------------------------------------------------------
+ STEP 5 - EXPRESS INTEREST                                       (toggle action)
+-------------------------------------------------------------------------------
+
+ Available on both the card and the detail page.
+
+     [ Express Interest ]   ---- click ---->   [ Matched ]   (filled pink)
+              ^                                     |
+              +---------------- click --------------+
+                          (interest withdrawn)
+
+ What happens behind the scenes:
+   1. Form posts to a Server Action (works without JavaScript).
+   2. The action verifies the session itself - it never trusts the page.
+   3. The interest is recorded as { userId, profileId, timestamp }.
+   4. Affected pages refresh so the button reflects the new state.
+
+ This is one-directional: a member expresses interest in a listing.
+ There is no mutual handshake, because listings are not user accounts.
+
+
+-------------------------------------------------------------------------------
+ STEP 6 - MY MATCHES                                                [ /matches ]
+-------------------------------------------------------------------------------
+
+ Everything this member has expressed interest in, in one place.
+
+   +-----------------------------------------------------------+
+   |  My Matches                                               |
+   |  Profiles you've expressed interest in.                   |
+   |                                                           |
+   |  +-------------+                                          |
+   |  | (SS) 42/26  |                                          |
+   |  | Sarbjeet .. |                                          |
+   |  | [ Matched ] |   <- click again to withdraw             |
+   |  +-------------+                                          |
+   +-----------------------------------------------------------+
+
+ If empty:
+   +-----------------------------------------------------------+
+   |                       [heart]                             |
+   |     You haven't matched with any profiles yet.            |
+   |            [ Browse Profiles ]                            |
+   +-----------------------------------------------------------+
+
+
+-------------------------------------------------------------------------------
+ NAVIGATION AVAILABLE ONCE SIGNED IN
+-------------------------------------------------------------------------------
+
+ Desktop header:   Browse Profiles | My Matches | (Admin*) | Signed in as ... | Logout
+ Mobile header:    hamburger menu with the same items
+                   (* the Admin link only appears for admin accounts)
+
+ Logout -> clears the session cookie -> returns to /login
+
+
+-------------------------------------------------------------------------------
+ WHAT THE MEMBER CANNOT DO
+-------------------------------------------------------------------------------
+
+ - See any profile without logging in (all listing routes are gated)
+ - Reach /admin or any admin page (redirected back to /profiles)
+ - Create, edit, or delete profiles (admin-only)
+ - See who else expressed interest in the same profile
+
+
+===============================================================================
+ BACKEND HOOKS - where a real database plugs into this flow
+===============================================================================
+
+ STEP 2a  register        -> lib/data/users.ts       createUser()
+ STEP 2b  login           -> lib/data/users.ts       findUserByUsername()
+                                                     verifyPassword()
+ STEP 3   browse/search   -> lib/data/profiles.ts    getProfiles(filters)
+ STEP 4   profile detail  -> lib/data/profiles.ts    getProfileById()
+ STEP 5   express interest-> lib/data/interests.ts   toggleInterest()
+ STEP 6   my matches      -> lib/data/interests.ts   getInterestedProfileIds()
+
+ All six are already async and return plain objects. Swap the function
+ bodies for real queries; no page or component changes.
+
+===============================================================================
