@@ -38,8 +38,9 @@
    harish / harish123
      - Priya Verma    23/26   Amritsar,   Doctor
 
- On /profiles those same listings show a filled pink [ Matched ] button,
- while every other card shows the outlined [ Express Interest ] button.
+ On /profiles those same listings show a filled pink [ Interest Sent ✓ ]
+ button, while every other card shows the outlined [ Express Interest ]
+ button.
  That is the quickest way to see both button states side by side.
 
 
@@ -223,7 +224,7 @@
 
  Available on both the card and the detail page.
 
-     [ Express Interest ]   ---- click ---->   [ Matched ]   (filled pink)
+     [ Express Interest ]   -- click -->   [ Interest Sent ✓ ]  (filled pink)
               ^                                     |
               +---------------- click --------------+
                           (interest withdrawn)
@@ -251,7 +252,7 @@
    |  +-------------+                                          |
    |  | (SS) 42/26  |                                          |
    |  | Sarbjeet .. |                                          |
-   |  | [ Matched ] |   <- click again to withdraw             |
+   |  |[Interest ✓ ]|   <- click again to withdraw             |
    |  +-------------+                                          |
    +-----------------------------------------------------------+
 

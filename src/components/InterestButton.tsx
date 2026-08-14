@@ -20,6 +20,7 @@ export default function InterestButton({
       <input type="hidden" name="redirectTo" value={redirectTo} />
       <button
         type="submit"
+        title={isInterested ? "Click to withdraw your interest" : undefined}
         className={`inline-flex items-center gap-1.5 rounded-full font-medium transition ${sizeClasses} ${
           isInterested
             ? "bg-linear-to-r from-pink-400 to-rose-400 text-white shadow-sm shadow-pink-200 hover:from-pink-500 hover:to-rose-500 dark:shadow-none"
@@ -27,7 +28,7 @@ export default function InterestButton({
         }`}
       >
         <HeartIcon className={size === "md" ? "h-4 w-4" : "h-3 w-3"} />
-        {isInterested ? "Matched" : "Express Interest"}
+        {isInterested ? "Interest Sent ✓" : "Express Interest"}
       </button>
     </form>
   );
