@@ -1,305 +1,282 @@
 ===============================================================================
- SAIN SMAJH MATRIMONIAL - MEMBER (AUDIENCE) FLOW
+ SAIN SMAJH MATRIMONIAL - MEMBER (NORMAL USER) FLOW
 ===============================================================================
- Who this is for : a community member looking for a match
+ Who this is for : any community member looking for a life partner
  Entry point     : http://localhost:3311
 ===============================================================================
 
 
- DEMO CREDENTIALS - LOG IN AND SEE THE MEMBER UI
+ THE CORE IDEA
 -------------------------------------------------------------------------------
 
- Three member accounts ship with the app. All three see the same screens,
- but each has a DIFFERENT match history, so "My Matches" looks different
- for each one. Use them to see the UI in different states.
+ EVERY NON-ADMIN ACCOUNT IS A PROFILE. There is no separate "listing" that
+ someone manages - you register, and you ARE a browsable profile. So:
 
-   +----------+-------------+---------------+--------------------------------+
-   | USERNAME | PASSWORD    | NAME          | WHAT YOU'LL SEE                |
-   +----------+-------------+---------------+--------------------------------+
-   | ravi     | ravi123     | Ravi Sain     | 2 matches - a good "active     |
-   |          |             |               | user" view                     |
-   +----------+-------------+---------------+--------------------------------+
-   | pooja    | pooja123    | Pooja Devi    | 2 matches - different profiles |
-   |          |             |               | than Ravi's                    |
-   +----------+-------------+---------------+--------------------------------+
-   | harish   | harish123   | Harish Kumar  | 1 match - the minimal case     |
-   +----------+-------------+---------------+--------------------------------+
+     - you can search and browse every other member
+     - you can send an interest to any of them
+     - they can send an interest to you
+     - when BOTH of you have sent one, it becomes a MATCH
 
- EXACTLY WHAT EACH ONE'S "MY MATCHES" PAGE CONTAINS:
-
-   ravi / ravi123
-     - Simran Kaur    17/26   Ludhiana,   Boutique Owner
-     - Anjali Sain    61/26   Jaipur,     Staff Nurse
-
-   pooja / pooja123
-     - Aman Sharma    08/26   Chandigarh, Software Engineer
-     - Vikram Sain    77/26   Ambala,     Workshop Owner
-
-   harish / harish123
-     - Priya Verma    23/26   Amritsar,   Doctor
-
- On /profiles those same listings show a filled pink [ Interest Sent ✓ ]
- button, while every other card shows the outlined [ Express Interest ]
- button.
- That is the quickest way to see both button states side by side.
+ The admin is the only exception: no profile, cannot send or receive
+ interests, only observes. See ADMIN_FLOW.txt.
 
 
- TO SEE THE EMPTY STATE (a brand-new member with no matches):
-   Register a fresh account at /register - any name, username, and password.
-   /matches will then show the "You haven't matched with any profiles yet"
-   screen with a Browse Profiles button.
+ DEMO CREDENTIALS
+-------------------------------------------------------------------------------
 
+ Nine member accounts ship with the app. Password is always <username>123.
 
- TO SWITCH BETWEEN ACCOUNTS:
-   Click Logout in the header (or the mobile menu), then log in as the next
-   one. Sessions are per-browser, so an incognito window lets you view two
-   accounts at the same time.
+   +------------+---------------+-------+----------------------------------+
+   | USERNAME   | PROFILE       | CODE  | WHAT YOU'LL SEE                  |
+   +------------+---------------+-------+----------------------------------+
+   | simran     | Simran Kaur   | 17/26 | BEST DEMO - 1 match, 1 pending   |
+   |            |               |       | interest received                |
+   +------------+---------------+-------+----------------------------------+
+   | sarbjeet   | Sarbjeet Singh| 42/26 | 1 match (with Simran)            |
+   | vikram     | Vikram Sain   | 77/26 | 1 match (with Anjali)            |
+   | anjali     | Anjali Sain   | 61/26 | 1 match (with Vikram)            |
+   +------------+---------------+-------+----------------------------------+
+   | priya      | Priya Verma   | 23/26 | 1 sent + 1 received, NO match    |
+   |            |               |       | (shows the "almost" state)       |
+   +------------+---------------+-------+----------------------------------+
+   | rahul      | Rahul Nagpal  | 56/26 | 1 sent, 1 received               |
+   | aman       | Aman Sharma   | 08/26 | 1 received only                  |
+   | neha       | Neha Kumari   | 12/26 | 1 sent only                      |
+   | gurpreet   | Gurpreet Singh| 31/26 | 1 sent only                      |
+   +------------+---------------+-------+----------------------------------+
 
+ START WITH: simran / simran123 - that account shows every state at once.
 
- NOTE - THE ADMIN ACCOUNT IS DIFFERENT:
-   admin / admin also works here, but the admin is an overseer, not a
-   participant: no Express Interest buttons anywhere, no My Matches link
-   (an "Admin" link takes its place), and /matches redirects to the admin
-   console. To review the member UI as a member actually experiences it,
-   use one of the three accounts above.
-   The admin journey is documented separately in ADMIN_FLOW.txt.
+ TO SEE A MATCH HAPPEN LIVE:
+   1. Log in as priya / priya123 -> Interests Received shows Gurpreet.
+   2. Open Gurpreet's profile and click Express Interest.
+   3. Both accounts now show each other under Matches.
+
+ TO SEE THE EMPTY STATE: register a brand-new account (see STEP 2).
+
 
 ===============================================================================
+ THE JOURNEY
+===============================================================================
 
-
- OVERVIEW OF THE JOURNEY
--------------------------------------------------------------------------------
-
-     LANDING  ->  REGISTER / LOGIN  ->  BROWSE  ->  PROFILE  ->  INTEREST
-                                          ^                          |
-                                          |                          v
-                                          +-------- MY MATCHES <-----+
+   LANDING -> REGISTER/LOGIN -> BROWSE -> PROFILE -> SEND INTEREST
+                                  ^                        |
+                                  |                        v
+                            MY PROFILE            MY MATCHES (3 tabs)
+                          (edit your own)     Matches | Received | Sent
 
 
 -------------------------------------------------------------------------------
  STEP 1 - LANDING PAGE                                                     [ / ]
 -------------------------------------------------------------------------------
 
- Visitor arrives at the home page.
-
-   +-----------------------------------------------------------+
-   |  [heart] Sain Smajh Matrimonial      Login  [ Register ]   |
-   +-----------------------------------------------------------+
-   |                                                           |
-   |        (full-screen photo of a couple, Patrika Gate)      |
-   |                                                           |
-   |        Find a LIFE PARTNER rooted in family & tradition   |
-   |                                                           |
-   |        [ Create Free Account ]   [ Login ]                |
-   |                                                           |
-   +-----------------------------------------------------------+
-   |  Private & Login-Only | Complete Details | Free to Join    |
-   +-----------------------------------------------------------+
-   |  [photo] With the blessings of Baba Sain Bhagat Ji         |
-   +-----------------------------------------------------------+
-
- NOTE: No profiles are visible here. Profiles are login-only, by design.
-
- DECISION:
-   Already have an account? ------> go to STEP 2b (Login)
-   New visitor?             ------> go to STEP 2a (Register)
+ Full-screen photo, the pitch, and two buttons: Create Free Account / Login.
+ No profiles are visible here - everything is login-only by design.
 
 
 -------------------------------------------------------------------------------
- STEP 2a - REGISTER                                                [ /register ]
+ STEP 2 - REGISTER                                                 [ /register ]
 -------------------------------------------------------------------------------
 
- Fields:  Full name  |  Username  |  Password
+ Registration creates your ACCOUNT AND YOUR PROFILE TOGETHER, so you are
+ immediately findable by other members.
+
+   Full name
+   Username            Password
+   Gender              Date of birth      (must be 18+)
+   City                Profession
 
    submit
      |
-     +--> validation fails  -> error shown under the offending field
-     |                         (name too short / username taken / weak password)
+     +--> validation fails -> error under the offending field
+     |                        (username taken / under 18 / missing field)
      |
-     +--> validation passes -> account created with role = "member"
-                               password stored bcrypt-hashed (never plain)
-                               session cookie set
-                               redirected to /profiles
+     +--> success -> account + profile created
+                     a code number is assigned automatically (e.g. 78/26)
+                     you are logged in
+                     -> redirected to /my-profile?welcome=1
+
+ The remaining biodata (height, education, family, partner preference)
+ starts as "Not specified" and is filled in on the My Profile page.
 
 
 -------------------------------------------------------------------------------
- STEP 2b - LOGIN                                                      [ /login ]
+ STEP 3 - LOGIN                                                       [ /login ]
 -------------------------------------------------------------------------------
 
- Fields:  Username  |  Password
+ Username + password. Members land on /profiles; the admin lands on /admin.
 
- Use any account from DEMO CREDENTIALS at the top of this file
- (ravi / ravi123, pooja / pooja123, harish / harish123).
-
-   submit
-     |
-     +--> wrong credentials -> "Invalid username or password."
-     |                         (deliberately vague - does not reveal which)
-     |
-     +--> correct           -> session cookie set (7-day JWT, httpOnly)
-                               redirected to /profiles
-
- NOTE: Visiting /login while already signed in redirects you to /profiles.
- NOTE: The login form is pre-filled with admin / admin as a demo convenience.
-       Clear those boxes to type a member's credentials. (Remove that
-       pre-fill before real users arrive.)
+ NOTE: the form is pre-filled with admin / admin as a demo convenience -
+ clear those boxes to log in as a member. (Remove that pre-fill before
+ real users arrive.)
 
 
 -------------------------------------------------------------------------------
- STEP 3 - BROWSE PROFILES                                          [ /profiles ]
+ STEP 4 - BROWSE PROFILES                                          [ /profiles ]
 -------------------------------------------------------------------------------
 
- The main member screen. Nine seeded profiles ship with the app.
+ Every OTHER member (you never see yourself in the list).
 
    +-----------------------------------------------------------+
    |  Browse Profiles                                          |
-   |                                                           |
-   |  [ search box.................. ] [gender v] [min] [max]  |
-   |  [ Search ]  [ Clear ]              Sort by [ Newest v ]  |
+   |  [ search........... ] [gender v] [min] [max]             |
+   |  [ Search ] [ Clear ]           Sort by [ Newest v ]      |
    +-----------------------------------------------------------+
-   |  9 profiles found.                                        |
+   |  8 profiles found.                                        |
    |                                                           |
-   |  +-------------+  +-------------+  +-------------+        |
-   |  | (VS) 77/26  |  | (AS) 61/26  |  | (RN) 56/26  |        |
-   |  | Vikram Sain |  | Anjali Sain |  | Rahul Nagpal|        |
-   |  | 36 yrs      |  | 27 yrs      |  | 29 yrs      |        |
-   |  | Ambala      |  | Jaipur      |  | Gurugram    |        |
-   |  | Education.. |  | Education.. |  | Education.. |        |
-   |  | Profession..|  | Profession..|  | Profession..|        |
-   |  | View full > |  | View full > |  | View full > |        |
-   |  | [ Interest ]|  | [ Interest ]|  | [ Interest ]|        |
-   |  +-------------+  +-------------+  +-------------+        |
-   |               ... 6 more profiles ...                     |
+   |  +------------------+  +------------------+               |
+   |  | [It's a match]   |  | [Interested in   |               |
+   |  |                  |  |         you]     |               |
+   |  | (SS) 42/26       |  | (RN) 56/26       |               |
+   |  | Sarbjeet Singh   |  | Rahul Nagpal     |               |
+   |  | 32 yrs  Jalandhar|  | 29 yrs  Gurugram |               |
+   |  | View full > .... |  | View full > .... |               |
+   |  | [It's a Match v] |  | [Express Interest]|              |
+   |  +------------------+  +------------------+               |
    +-----------------------------------------------------------+
 
- SEARCH matches against: name, profession, city, education, code number.
- FILTERS: gender (any / male / female), minimum age, maximum age.
- SORT:    newest first (default) | age low-to-high | age high-to-low.
+ CARD BADGES tell you the state at a glance:
+   [It's a match]        rose border - you both sent interests
+   [Interested in you]   amber - they sent one, you haven't replied yet
+   (no badge)            no interest either way yet
 
- Filters live in the URL, so a search can be bookmarked or shared:
+ SEARCH matches: name, username, profession, city, education, code number.
+ FILTERS: gender, minimum age, maximum age.  SORT: newest / age asc / desc.
+ Filters live in the URL, so a search is bookmarkable:
    /profiles?q=doctor&gender=female&minAge=25&maxAge=32&sort=age-asc
 
- Two things a member can do from a card:
-   (a) "View full profile"  -> STEP 4
-   (b) "Express Interest"   -> STEP 5 (without leaving the page)
-
 
 -------------------------------------------------------------------------------
- STEP 4 - VIEW A FULL PROFILE                                 [ /profiles/:id ]
+ STEP 5 - VIEW A FULL PROFILE                                 [ /profiles/:id ]
 -------------------------------------------------------------------------------
 
- The complete biodata, laid out as a community matrimonial listing:
+ The complete biodata. A banner at the top states the relationship:
 
-   <- Back to all profiles
+   "It's a match - you both expressed interest in each other."   (rose)
+   "Rahul has expressed interest in you."                        (amber)
 
    +-----------------------------------------------------------+
-   |   ( SS )    Code No: 42/26                                |
-   |             Sarbjeet Singh                                |
-   |             32 years old * 5'11" (180 cm)                 |
-   |             [ Express Interest ]                          |
+   |   ( SS )   Code No: 42/26                                 |
+   |            Sarbjeet Singh                                 |
+   |            32 years old * 5'11" (180 cm)                  |
+   |            [ Express Interest ]                           |
    +-----------------------------------------------------------+
-   |  DATE OF BIRTH     04 November 1993                       |
-   |  HEIGHT            5'11" (180 cm)                         |
-   |  CITY              Jalandhar                              |
-   |  PROFESSION        Electrician                            |
-   |  WORK EXPERIENCE   Worked as an Electrician in Dubai...   |
-   +-----------------------------------------------------------+
+   |  DATE OF BIRTH / HEIGHT / CITY / PROFESSION / WORK EXP.   |
    |  EDUCATIONAL QUALIFICATION                                |
-   |   - Senior Secondary (+2)                                 |
-   |   - ITI - Electrician                                     |
-   +-----------------------------------------------------------+
    |  FAMILY DETAILS                                           |
-   |   Brother: 1 (Married)     Sister: 1 (Married)            |
-   +-----------------------------------------------------------+
    |  PARTNER PREFERENCE                                       |
-   |   "Looking for a simple, caring, and family-oriented      |
-   |    girl who values family traditions and relationships."  |
    +-----------------------------------------------------------+
 
- NOTE: Photos are not supported yet - a coloured initials circle is shown
-       instead. The field exists in the data model for when they are added.
+ If you open YOUR OWN profile, the button is replaced by
+ "This is you - edit your profile", linking to /my-profile.
+
+ Photos aren't supported yet - a coloured initials circle is shown instead.
 
 
 -------------------------------------------------------------------------------
- STEP 5 - EXPRESS INTEREST                                       (toggle action)
+ STEP 6 - SEND AN INTEREST                                       (toggle action)
 -------------------------------------------------------------------------------
 
- Available on both the card and the detail page.
+     [ Express Interest ]  --click-->  [ Interest Sent v ]
+              ^                                |
+              +------------ click -------------+
+                       (interest withdrawn)
 
-     [ Express Interest ]   -- click -->   [ Interest Sent ✓ ]  (filled pink)
-              ^                                     |
-              +---------------- click --------------+
-                          (interest withdrawn)
+ If the other person has ALREADY sent you one, sending yours makes it a
+ match immediately, and the button becomes [ It's a Match v ] for both.
 
- What happens behind the scenes:
-   1. Form posts to a Server Action (works without JavaScript).
-   2. The action verifies the session itself - it never trusts the page.
-   3. The interest is recorded as { userId, profileId, timestamp }.
-   4. Affected pages refresh so the button reflects the new state.
-
- This is one-directional: a member expresses interest in a listing.
- There is no mutual handshake, because listings are not user accounts.
+ Behind the scenes: a Server Action re-checks who you are, refuses if you
+ are the admin, refuses self-interest, then records { from, to, timestamp }.
+ It works with JavaScript disabled.
 
 
 -------------------------------------------------------------------------------
- STEP 6 - MY MATCHES                                                [ /matches ]
+ STEP 7 - MY MATCHES  (three tabs)                                  [ /matches ]
 -------------------------------------------------------------------------------
 
- Everything this member has expressed interest in, in one place.
+   Matches (1)  |  Interests Received (1)  |  Interests Sent (0)
+   ===========
+
+ TAB 1 - MATCHES        both of you sent an interest. The real result.
+ TAB 2 - RECEIVED       they are interested in you; you haven't replied.
+                        Send one back to turn it into a match.
+ TAB 3 - SENT           you are waiting on their reply.
+
+ Nothing is listed twice: once a pair becomes mutual it is promoted OUT of
+ Received/Sent and appears only under Matches.
+
+ Example - logged in as simran:
+   Matches            -> Sarbjeet Singh   (both sent)
+   Interests Received -> Rahul Nagpal     (he sent, she hasn't replied)
+   Interests Sent     -> empty            (her only sent one is now a match)
+
+ Empty tabs show a heart, an explanation, and a Browse Profiles button.
+
+
+-------------------------------------------------------------------------------
+ STEP 8 - MY PROFILE                                             [ /my-profile ]
+-------------------------------------------------------------------------------
+
+ View and edit what everyone else sees about you.
 
    +-----------------------------------------------------------+
-   |  My Matches                                               |
-   |  Profiles you've expressed interest in.                   |
-   |                                                           |
-   |  +-------------+                                          |
-   |  | (SS) 42/26  |                                          |
-   |  | Sarbjeet .. |                                          |
-   |  |[Interest ✓ ]|   <- click again to withdraw             |
-   |  +-------------+                                          |
+   |  Code No: 17/26                    [View as others see it]|
+   |  My Profile                                               |
+   +-----------------------------------------------------------+
+   |  Full name                                                |
+   |  Gender | Date of birth | Height                          |
+   |  City   | Profession                                      |
+   |  Educational qualification (one per line)                 |
+   |  Work experience                                          |
+   |  Brother(s) | Sister(s)                                   |
+   |  Partner preference                                       |
+   |  [            Save profile            ]                   |
    +-----------------------------------------------------------+
 
- If empty:
-   +-----------------------------------------------------------+
-   |                       [heart]                             |
-   |     You haven't matched with any profiles yet.            |
-   |            [ Browse Profiles ]                            |
-   +-----------------------------------------------------------+
+ Saving shows a green "Profile saved." confirmation. Placeholder values of
+ "Not specified" are shown as empty boxes rather than pre-filled text.
 
 
 -------------------------------------------------------------------------------
- NAVIGATION AVAILABLE ONCE SIGNED IN
+ NAVIGATION ONCE SIGNED IN
 -------------------------------------------------------------------------------
 
- Desktop header:   Browse Profiles | My Matches | (Admin*) | Signed in as ... | Logout
- Mobile header:    hamburger menu with the same items
-                   (* the Admin link only appears for admin accounts)
+ Desktop:  Browse Profiles | My Matches | My Profile | Signed in as ... | Logout
+ Mobile:   hamburger menu with the same items
 
- Logout -> clears the session cookie -> returns to /login
+ Logout clears the session cookie and returns to /login.
 
 
 -------------------------------------------------------------------------------
- WHAT THE MEMBER CANNOT DO
+ WHAT A MEMBER CANNOT DO
 -------------------------------------------------------------------------------
 
- - See any profile without logging in (all listing routes are gated)
- - Reach /admin or any admin page (redirected back to /profiles)
- - Create, edit, or delete profiles (admin-only)
- - See who else expressed interest in the same profile
+ - See anything without logging in (all member routes are gated)
+ - Reach /admin (redirected back to /profiles)
+ - Send an interest to themselves (blocked in the UI and server-side)
+ - See who else a given member has liked - only their own interests
+ - Edit anyone else's profile
 
 
 ===============================================================================
  BACKEND HOOKS - where a real database plugs into this flow
 ===============================================================================
 
- STEP 2a  register        -> lib/data/users.ts       createUser()
- STEP 2b  login           -> lib/data/users.ts       findUserByUsername()
-                                                     verifyPassword()
- STEP 3   browse/search   -> lib/data/profiles.ts    getProfiles(filters)
- STEP 4   profile detail  -> lib/data/profiles.ts    getProfileById()
- STEP 5   express interest-> lib/data/interests.ts   toggleInterest()
- STEP 6   my matches      -> lib/data/interests.ts   getInterestedProfileIds()
+ STEP 2  register       -> users.ts     createUser()
+                           profiles.ts  createProfileForUser()
+ STEP 3  login          -> users.ts     findUserByUsername() + verifyPassword()
+ STEP 4  browse/search  -> profiles.ts  getProfiles(filters)   [excludeUserId]
+                           interests.ts getSentInterestUserIds()
+                                        getReceivedInterestUserIds()
+ STEP 5  profile detail -> profiles.ts  getProfileById()
+                           interests.ts hasSentInterest()  (both directions)
+ STEP 6  send interest  -> interests.ts toggleInterest(fromUserId, toUserId)
+ STEP 7  my matches     -> interests.ts getMutualMatchUserIds()
+                                        getReceivedInterestUserIds()
+                                        getSentInterestUserIds()
+ STEP 8  edit profile   -> profiles.ts  updateProfile()
 
- All six are already async and return plain objects. Swap the function
- bodies for real queries; no page or component changes.
+ All are async and return plain objects - swap the bodies for real queries
+ and no page or component needs to change.
 
 ===============================================================================

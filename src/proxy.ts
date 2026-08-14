@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { decrypt } from "@/lib/session";
 
-const protectedPrefixes = ["/profiles", "/matches", "/admin"];
+const protectedPrefixes = ["/profiles", "/matches", "/admin", "/my-profile"];
 const authOnlyRoutes = ["/login", "/register"];
 
 export default async function proxy(req: NextRequest) {

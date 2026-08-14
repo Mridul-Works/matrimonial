@@ -15,9 +15,11 @@ export default async function AdminMembersPage({
 
   const [users, interests] = await Promise.all([getAllUsers(), getAllInterests()]);
 
-  const interestCount = new Map<string, number>();
-  for (const interest of interests) {
-    interestCount.set(interest.userId, (interestCount.get(interest.userId) ?? 0) + 1);
+  const sentCount = new Map<string, number>();
+  const receivedCount = new Map<string, number>();
+  for (const i of interests) {
+    sentCount.set(i.fromUserId, (sentCount.get(i.fromUserId) ?? 0) + 1);
+    receivedCount.set(i.toUserId, (receivedCount.get(i.toUserId) ?? 0) + 1);
   }
 
   const needle = q?.trim().toLowerCase();
@@ -43,7 +45,7 @@ export default async function AdminMembersPage({
 
       <div className="mt-4">
         <AdminTable
-          columns={["ID", "Name", "Username", "Role", "Interests Sent", "Joined"]}
+          columns={["ID", "Name", "Username", "Role", "Sent", "Received", "Joined"]}
           rows={filtered.map((u) => [
             <IdBadge key="id">{u.id}</IdBadge>,
             u.name,
@@ -63,7 +65,8 @@ export default async function AdminMembersPage({
                 member
               </span>
             ),
-            <span key="count" className="tabular-nums">{interestCount.get(u.id) ?? 0}</span>,
+            <span key="sent" className="tabular-nums">{sentCount.get(u.id) ?? 0}</span>,
+            <span key="recv" className="tabular-nums">{receivedCount.get(u.id) ?? 0}</span>,
             formatDob(u.createdAt),
           ])}
           emptyLabel={needle ? "No accounts match that search." : "No accounts yet."}

@@ -9,16 +9,17 @@ export async function toggleInterestAction(formData: FormData) {
   if (!user) return;
 
   // Admins oversee the service; they don't participate in it. The UI hides
-  // the button for them, but the action is the real gate — a crafted POST
-  // from an admin session must not create an interest either.
+  // the button for them, but this is the real gate — a crafted POST from an
+  // admin session must not create an interest either.
   if (user.role === "admin") return;
 
-  const profileId = String(formData.get("profileId") ?? "");
-  if (!profileId) return;
+  const toUserId = String(formData.get("toUserId") ?? "");
+  if (!toUserId || toUserId === user.id) return;
 
-  await toggleInterest(user.id, profileId);
+  await toggleInterest(user.id, toUserId);
 
   const redirectTo = String(formData.get("redirectTo") ?? "/profiles");
   revalidatePath(redirectTo);
   revalidatePath("/matches");
+  revalidatePath("/profiles");
 }

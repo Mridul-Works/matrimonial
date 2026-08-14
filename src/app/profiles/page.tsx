@@ -1,7 +1,10 @@
 import { redirect } from "next/navigation";
 import { getUser } from "@/lib/dal";
 import { getProfiles } from "@/lib/data/profiles";
-import { getInterestedProfileIds } from "@/lib/data/interests";
+import {
+  getReceivedInterestUserIds,
+  getSentInterestUserIds,
+} from "@/lib/data/interests";
 import ProfileCard from "@/components/ProfileCard";
 import ProfileFilters, { type ProfileSearchParams } from "@/components/ProfileFilters";
 
@@ -11,20 +14,34 @@ export default async function ProfilesPage({
   searchParams: Promise<ProfileSearchParams>;
 }) {
   const user = await getUser();
-  if (!user) redirect("/login");
+  // Cookie is valid but the account is gone — clear it rather than loop.
+  if (!user) redirect("/session-expired");
   const isAdmin = user.role === "admin";
   const params = await searchParams;
 
-  const gender = params.gender === "male" || params.gender === "female" ? params.gender : undefined;
+  const gender =
+    params.gender === "male" || params.gender === "female" ? params.gender : undefined;
   const minAge = params.minAge ? Number(params.minAge) : undefined;
   const maxAge = params.maxAge ? Number(params.maxAge) : undefined;
   const sort =
     params.sort === "age-asc" || params.sort === "age-desc" ? params.sort : "newest";
 
-  const [profiles, interestedIds] = await Promise.all([
-    getProfiles({ q: params.q, gender, minAge, maxAge, sort }),
-    isAdmin ? Promise.resolve([]) : getInterestedProfileIds(user.id),
+  const [profiles, sentIds, receivedIds] = await Promise.all([
+    getProfiles({
+      q: params.q,
+      gender,
+      minAge,
+      maxAge,
+      sort,
+      // Members never see themselves in the browse list.
+      excludeUserId: isAdmin ? undefined : user.id,
+    }),
+    isAdmin ? Promise.resolve([]) : getSentInterestUserIds(user.id),
+    isAdmin ? Promise.resolve([]) : getReceivedInterestUserIds(user.id),
   ]);
+
+  const sent = new Set(sentIds);
+  const received = new Set(receivedIds);
 
   return (
     <div className="mx-auto max-w-5xl px-6 py-12">
@@ -32,7 +49,9 @@ export default async function ProfilesPage({
         Browse Profiles
       </h1>
       <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-        Use the filters below to find profiles relevant to what you&apos;re looking for.
+        {isAdmin
+          ? "Every member profile, as members see it. Admins browse read-only."
+          : "Find someone who fits what you're looking for, and send them an interest."}
       </p>
 
       <ProfileFilters params={params} />
@@ -47,14 +66,20 @@ export default async function ProfilesPage({
         </p>
       ) : (
         <div className="mt-4 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {profiles.map((profile) => (
-            <ProfileCard
-              key={profile.id}
-              profile={profile}
-              isInterested={interestedIds.includes(profile.id)}
-              showInterest={!isAdmin}
-            />
-          ))}
+          {profiles.map((profile) => {
+            const iSent = sent.has(profile.id);
+            const theySent = received.has(profile.id);
+            return (
+              <ProfileCard
+                key={profile.id}
+                profile={profile}
+                isInterested={iSent}
+                isMutual={iSent && theySent}
+                hasInterestInYou={theySent && !iSent}
+                showInterest={!isAdmin}
+              />
+            );
+          })}
         </div>
       )}
     </div>

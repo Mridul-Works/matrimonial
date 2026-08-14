@@ -7,189 +7,172 @@
 ===============================================================================
 
 
+ THE ADMIN IS AN OVERSEER, NOT A PARTICIPANT
+-------------------------------------------------------------------------------
+
+ Every other account is a normal member: a browsable profile that sends and
+ receives interests. The admin is deliberately outside that:
+
+   - has NO profile, and never appears in anyone's browse results
+   - CANNOT send an interest - no buttons anywhere, on any page
+   - has no "My Matches" or "My Profile" (an "Admin" link replaces them);
+     typing /matches redirects to /admin/matches, /my-profile to /admin
+   - enforced SERVER-SIDE too: the interest action checks the role and
+     refuses admin sessions, so even a hand-crafted form POST creates
+     nothing (verified: interest count unchanged after a forced POST)
+
+ The admin observes everyone's activity and registers walk-in members.
+
+
  OVERVIEW OF THE JOURNEY
 -------------------------------------------------------------------------------
 
-                            LOGIN (admin account)
-                                    |
-                                    v
-                          +-------------------+
-                          |  ADMIN CONSOLE    |
-                          +-------------------+
+                        LOGIN as admin -> /admin
                                     |
         +-----------------+---------+---------+-----------------+
         v                 v                   v                 v
     OVERVIEW        MATCH ACTIVITY        PROFILES           MEMBERS
-   (the pulse)     (who liked whom)   (the catalogue)    (the accounts)
+   (the pulse)     (who likes whom,    (every profile,    (every account,
+                    + mutual pairs)     by code no)        by ID)
                                             |
                                             v
-                                      ADD A PROFILE
+                                    REGISTER A MEMBER
 
 
 -------------------------------------------------------------------------------
  STEP 1 - LOG IN AS ADMIN                                             [ /login ]
 -------------------------------------------------------------------------------
 
- Username: admin      Password: admin
+ admin / admin  ->  redirected straight to /admin (members go to /profiles).
 
- On success the header gains an extra "Admin" link that members never see.
-
- SECURITY NOTE - admin access is checked twice, independently:
-   1. proxy.ts  - a fast cookie check at the edge; bounces anonymous visitors.
-   2. requireAdmin() inside each admin page - the real gate. It re-verifies
-      the session AND looks up the stored role.
-   A logged-in member who types /admin directly is redirected to /profiles.
+ Access is checked twice, independently:
+   1. proxy.ts - a fast cookie check at the edge; bounces anonymous visitors.
+   2. requireAdmin() inside each admin page - the real gate; re-verifies the
+      session AND the stored role. A member typing /admin lands on /profiles.
 
 
 -------------------------------------------------------------------------------
  STEP 2 - THE CONSOLE SHELL                                           [ /admin ]
 -------------------------------------------------------------------------------
 
- Every admin screen shares this frame:
-
    +-----------------------------------------------------------+
-   |  [heart] Admin Panel                     [ + Add Profile ] |
+   |  [heart] Admin Panel                  [ + Register Member ]|
    |  Sain Smajh Console                                        |
    |                                                            |
    |  [Overview]  Match Activity   Profiles   Members           |
    |  ==========                                                |
    +-----------------------------------------------------------+
-   |                                                            |
-   |                  (the active tab renders here)             |
-   |                                                            |
+   |                 (the active tab renders here)              |
    +-----------------------------------------------------------+
 
- "+ Add Profile" is reachable from every tab, not buried inside one.
- On mobile the tab row scrolls sideways; tables scroll inside their own box.
+ On mobile the tab row scrolls sideways and tables scroll inside their box.
 
 
 -------------------------------------------------------------------------------
  STEP 3 - TAB 1: OVERVIEW                                             [ /admin ]
 -------------------------------------------------------------------------------
 
- The at-a-glance health of the service. Every stat card is clickable and
- jumps to the tab that explains it.
+ Four clickable stat cards, each jumping to the tab that explains it:
 
-   +------------------+  +------------------+  +------------------+
-   |        3         |  |        9         |  |        5         |
-   | Registered       |  | Profiles listed  |  | Interests        |
-   | members          |  |                  |  | expressed        |
-   +------------------+  +------------------+  +------------------+
-        (-> Members)         (-> Profiles)       (-> Match Activity)
+   +-------------+ +-------------+ +-------------+ +---------------+
+   |      9      | |      9      | |      8      | |       2       |
+   | Registered  | | Profiles    | | Interests   | | Mutual        |
+   | members     | | listed      | | expressed   | | matches       |
+   +-------------+ +-------------+ +-------------+ +---------------+
+    (-> Members)    (-> Profiles)   (-> Activity)   (-> Activity)
+                                                     highlighted pink
 
-   Latest Match Activity                              View all ->
-   +-----------------------------------------------------------+
-   | Pooja Devi  [heart]  Vikram Sain   77/26   17 Jan, 08:55 pm|
-   | Ravi Sain   [heart]  Anjali Sain   61/26   16 Jan, 09:05 am|
-   | Harish Kumar[heart]  Priya Verma   23/26   15 Jan, 02:10 pm|
-   | Pooja Devi  [heart]  Aman Sharma   08/26   11 Jan, 06:40 pm|
-   | Ravi Sain   [heart]  Simran Kaur   17/26   07 Jan, 11:20 am|
-   +-----------------------------------------------------------+
+ (Members and Profiles always match - every member has exactly one profile.)
 
- Shows the six most recent interests. For the full history -> STEP 4.
+ Below: the six most recent interests, each as "A [heart] B  code  when".
 
 
 -------------------------------------------------------------------------------
  STEP 4 - TAB 2: MATCH ACTIVITY                               [ /admin/matches ]
 -------------------------------------------------------------------------------
 
- *** This is the "who tried to match with whom" screen. ***
+ *** This is the "who likes whom, and who likes each other" screen. ***
 
- It has TWO sections: MUTUAL MATCHES on top, then the full interest log.
+ SECTION A - MUTUAL MATCHES (both said yes)
+ ------------------------------------------
 
- SECTION A - MUTUAL MATCHES (both sides said yes)
- ------------------------------------------------
- Some listings are linked to the member account that manages them (a person
- often manages a biodata for themselves or a family member - the "Managed By"
- column in the Profiles tab). When listing P1's manager likes listing P2 AND
- P2's manager likes P1, that pair becomes a MUTUAL MATCH.
+   [heart] Mutual Matches  (2)
 
-   [heart] Mutual Matches  (1)
    +--------------------------------------------------------------+
-   |  Simran Kaur                 [heart]            Vikram Sain  |
-   |  17/26  Ludhiana             MUTUAL          77/26  Ambala   |
-   |  via Pooja Devi (pooja)               via Ravi Sain (ravi)   |
+   |  Simran Kaur              [heart]           Sarbjeet Singh   |
+   |  17/26  Ludhiana          MUTUAL            42/26  Jalandhar |
+   |  @simran                                    @sarbjeet        |
    |                                                              |
+   |          Became mutual on 09 Jan 2026, 04:45 pm              |
+   +--------------------------------------------------------------+
+
+   +--------------------------------------------------------------+
+   |  Anjali Sain              [heart]           Vikram Sain      |
+   |  61/26  Jaipur            MUTUAL            77/26  Ambala    |
+   |  @anjali                                    @vikram          |
    |          Became mutual on 17 Jan 2026, 08:55 pm              |
    +--------------------------------------------------------------+
 
- In the seed data: Ravi (managing Vikram's listing) liked Simran's listing,
- and Pooja (managing Simran's listing) liked Vikram's listing -> mutual.
- These are the families the admin should call first.
+ A pair appears here the moment the SECOND interest lands; the timestamp is
+ that moment, not the first interest. These are the families to call first.
 
- Listings with no managing member can receive interest but can never
- reciprocate, so they never appear here - only in the log below.
+ SECTION B - ALL INTEREST ACTIVITY (the full log)
+ ------------------------------------------------
 
- SECTION B - ALL INTEREST ACTIVITY (one-directional log)
- -------------------------------------------------------
- The complete interest log, newest first, with both sides identified.
+   8 interests sent in total. Newest first.
+                                    [ search by either member ] [Search]
 
-   5 interests expressed in total. Newest first.
-                                    [ search by member or profile ] [Search]
+   +----------------------+----------------------+----------+------------+
+   | FROM (MEMBER)        | TO (MEMBER)          | STATUS   | WHEN       |
+   +----------------------+----------------------+----------+------------+
+   | Rahul Nagpal  56/26  | Simran Kaur   17/26  | One-way  | 20 Jan ... |
+   | Neha Kumari   12/26  | Rahul Nagpal  56/26  | One-way  | 19 Jan ... |
+   | Anjali Sain   61/26  | Vikram Sain   77/26  | [Mutual] | 17 Jan ... |
+   | Vikram Sain   77/26  | Anjali Sain   61/26  | [Mutual] | 16 Jan ... |
+   | Gurpreet Singh 31/26 | Priya Verma   23/26  | One-way  | 13 Jan ... |
+   | Priya Verma   23/26  | Aman Sharma   08/26  | One-way  | 11 Jan ... |
+   | Simran Kaur   17/26  | Sarbjeet Singh 42/26 | [Mutual] | 09 Jan ... |
+   | Sarbjeet Singh 42/26 | Simran Kaur   17/26  | [Mutual] | 07 Jan ... |
+   +----------------------+----------------------+----------+------------+
 
-   +-------------------+----------------------+---------+-------------------+
-   | MEMBER (ID)       | EXPRESSED INTEREST IN| PROFILE | WHEN              |
-   |                   |                      | CODE    |                   |
-   +-------------------+----------------------+---------+-------------------+
-   | Pooja Devi        | Vikram Sain          |  77/26  | 17 Jan 2026,      |
-   |   member-pooja    |                      |         | 08:55 pm          |
-   +-------------------+----------------------+---------+-------------------+
-   | Ravi Sain         | Anjali Sain          |  61/26  | 16 Jan 2026,      |
-   |   member-ravi     |                      |         | 09:05 am          |
-   +-------------------+----------------------+---------+-------------------+
-   | Harish Kumar      | Priya Verma          |  23/26  | 15 Jan 2026,      |
-   |   member-harish   |                      |         | 02:10 pm          |
-   +-------------------+----------------------+---------+-------------------+
-   | Pooja Devi        | Aman Sharma          |  08/26  | 11 Jan 2026,      |
-   |   member-pooja    |                      |         | 06:40 pm          |
-   +-------------------+----------------------+---------+-------------------+
-   | Ravi Sain         | Simran Kaur          |  17/26  | 07 Jan 2026,      |
-   |   member-ravi     |                      |         | 11:20 am          |
-   +-------------------+----------------------+---------+-------------------+
+ Both directions are listed separately, each tagged:
+   [Mutual]  rose chip - the other person sent one back
+   One-way   grey chip - still waiting on a reply
 
- EACH ROW ANSWERS: which member, which listing, which code number, exactly when.
-
- SEARCH works from either direction:
-   - type a member's name, username, or ID  -> everything that person liked
-   - type a profile name or code number      -> everyone who liked that listing
-
-   Example: searching "pooja"  -> only Pooja Devi's 2 interests
-            searching "77/26"  -> only who expressed interest in Vikram Sain
-
- Profile names are links - click to open the listing the member saw.
+ SEARCH works from either side - type a name, username, or code number and
+ you get every interest that person sent OR received.
 
  TYPICAL ADMIN TASK:
-   "The Sharma family asked who's interested in their son (08/26)."
-     -> Match Activity -> search "08/26" -> Pooja Devi, 11 Jan, 06:40 pm.
+   "The Sharma family asked who is interested in their son (08/26)."
+     -> Match Activity -> search "08/26"
+     -> Priya Verma sent one on 11 Jan; not reciprocated yet.
 
 
 -------------------------------------------------------------------------------
  STEP 5 - TAB 3: PROFILES                                    [ /admin/profiles ]
 -------------------------------------------------------------------------------
 
- The whole catalogue, keyed by code number, with demand shown per listing.
+ Every profile by code number, with the account it belongs to and its
+ popularity.
 
-   9 profiles listed.        [ search by code, name, city ] [Search]
+   9 profiles listed.        [ search by code, name, city, username ] [Search]
 
-   +--------+---------------+--------+-----+-----------+--------------+--------+
-   | CODE   | NAME          | GENDER | AGE | CITY      | PROFESSION   |INTEREST|
-   |  NO    |               |        |     |           |              |RECEIVED|
-   +--------+---------------+--------+-----+-----------+--------------+--------+
-   | 77/26  | Vikram Sain   | Male   | 36  | Ambala    | Workshop O.. |   1    |
-   | 61/26  | Anjali Sain   | Female | 27  | Jaipur    | Staff Nurse  |   1    |
-   | 56/26  | Rahul Nagpal  | Male   | 29  | Gurugram  | Accountant   |   0    |
-   | 23/26  | Priya Verma   | Female | 27  | Amritsar  | Doctor       |   1    |
-   | 31/26  | Gurpreet Sing.| Male   | 31  | Patiala   | Restaurant M.|   0    |
-   | 12/26  | Neha Kumari   | Female | 31  | Delhi     | School Teach.|   0    |
-   | 08/26  | Aman Sharma   | Male   | 35  | Chandigarh| Software Eng.|   1    |
-   | 17/26  | Simran Kaur   | Female | 30  | Ludhiana  | Boutique Own.|   1    |
-   | 42/26  | Sarbjeet Sing.| Male   | 32  | Jalandhar | Electrician  |   0    |
-   +--------+---------------+--------+-----+-----------+--------------+--------+
+   +-------+---------------+----------+--------+-----+-----------+------+------+
+   | CODE  | NAME          | USERNAME | GENDER | AGE | CITY      | SENT | RECV |
+   +-------+---------------+----------+--------+-----+-----------+------+------+
+   | 77/26 | Vikram Sain   | vikram   | Male   | 36  | Ambala    |  1   |  1   |
+   | 61/26 | Anjali Sain   | anjali   | Female | 27  | Jaipur    |  1   |  1   |
+   | 56/26 | Rahul Nagpal  | rahul    | Male   | 29  | Gurugram  |  1   |  1   |
+   | 31/26 | Gurpreet Singh| gurpreet | Male   | 31  | Patiala   |  1   |  0   |
+   | 23/26 | Priya Verma   | priya    | Female | 27  | Amritsar  |  1   |  1   |
+   | 12/26 | Neha Kumari   | neha     | Female | 31  | Delhi     |  1   |  0   |
+   | 08/26 | Aman Sharma   | aman     | Male   | 35  | Chandigarh|  0   |  1   |
+   | 17/26 | Simran Kaur   | simran   | Female | 30  | Ludhiana  |  1   |  2   |
+   | 42/26 | Sarbjeet Singh| sarbjeet | Male   | 32  | Jalandhar |  1   |  1   |
+   +-------+---------------+----------+--------+-----+-----------+------+------+
 
- "INTEREST RECEIVED" tells you which listings are getting attention and which
- are being overlooked - useful when advising a family.
-
- Names link through to the live profile page as a member sees it.
+ SENT / RECV show who is active and who is in demand - useful when advising
+ a family. Names link to the live profile as members see it.
 
 
 -------------------------------------------------------------------------------
@@ -198,88 +181,71 @@
 
  *** This is the "list of everyone, by ID" screen. ***
 
-   4 accounts registered.     [ search by ID, name, username ] [Search]
+   10 accounts registered.    [ search by ID, name, username ] [Search]
 
-   +-----------------+---------------+-----------+----------+----------+---------+
-   | ID              | NAME          | USERNAME  | ROLE     | INTERESTS| JOINED  |
-   |                 |               |           |          | SENT     |         |
-   +-----------------+---------------+-----------+----------+----------+---------+
-   | member-harish   | Harish Kumar  | harish    | [member] |    1     | 14 Jan  |
-   | member-pooja    | Pooja Devi    | pooja     | [member] |    2     | 09 Jan  |
-   | member-ravi     | Ravi Sain     | ravi      | [member] |    2     | 06 Jan  |
-   | admin           | Admin         | admin     | [admin]  |    0     | 01 Jan  |
-   +-----------------+---------------+-----------+----------+----------+---------+
+   +--------------+---------------+----------+----------+------+------+--------+
+   | ID           | NAME          | USERNAME | ROLE     | SENT | RECV | JOINED |
+   +--------------+---------------+----------+----------+------+------+--------+
+   | u-vikram     | Vikram Sain   | vikram   | [member] |  1   |  1   | 18 Jan |
+   | u-anjali     | Anjali Sain   | anjali   | [member] |  1   |  1   | 15 Jan |
+   | u-rahul      | Rahul Nagpal  | rahul    | [member] |  1   |  1   | 12 Jan |
+   | ...                                                                       |
+   | admin        | Admin         | admin    | [admin]  |  0   |  0   | 01 Jan |
+   +--------------+---------------+----------+----------+------+------+--------+
 
- Every account appears here, admins included, each with its unique ID.
+ Every account appears here, the admin included, each with its unique ID.
  Role is colour-coded: pink = member, amber = admin.
- "INTERESTS SENT" shows how active each member is.
 
- WHY THIS SAYS 4 BUT OVERVIEW SAYS 3: the Overview card counts members only
- (people looking for a match). This tab lists every account, admins included.
- Not a bug - two deliberately different questions.
-
- Newly registered members appear at the top automatically.
+ WHY THIS SAYS 10 BUT OVERVIEW SAYS 9: the Overview card counts members only
+ (people looking for a match). This tab lists every account including the
+ admin. Not a bug - two deliberately different questions.
 
 
 -------------------------------------------------------------------------------
- STEP 7 - ADD A PROFILE                                  [ /admin/profiles/new ]
+ STEP 7 - REGISTER A MEMBER                              [ /admin/profiles/new ]
 -------------------------------------------------------------------------------
 
- Reached by "+ Add Profile" from any tab.
+ For WALK-IN registrations, where a family gives their details in person.
+ Because every profile belongs to an account, this creates BOTH - the member
+ can then log in themselves and send interests.
 
    +-----------------------------------------------------------+
-   |  Add a Profile                                            |
-   |  Photos aren't supported yet - profiles show an initials  |
-   |  avatar until that ships.                                 |
-   +-----------------------------------------------------------+
-   |  Code No *          |  Full Name *                        |
-   |  Gender *  | Date of Birth * | Height *                   |
-   |  City *             |  Profession *                       |
+   |  Register a Member                                        |
+   |                                                           |
+   |  Full Name *                                              |
+   |  Username * (their login)  |  Temporary Password *        |
+   |  Gender *  | Date of Birth * | Height                     |
+   |  City *    | Profession *                                 |
    |  Educational Qualification (one per line)                 |
    |  Work Experience                                          |
-   |  Brother(s)         |  Sister(s)                          |
+   |  Brother(s) | Sister(s)                                   |
    |  Partner Preference                                       |
-   |                                                           |
-   |  [        Add Profile        ]                            |
+   |  [            Register Member            ]                |
    +-----------------------------------------------------------+
                      ( * = required )
 
    submit
      |
-     +--> missing required field -> error shown under that field, nothing saved
+     +--> username taken / missing field -> error under that field
      |
-     +--> valid -> profile saved
-                   -> redirected to the Overview tab
-                   -> the listing is immediately live for members
-                      and appears in the Profiles tab
+     +--> valid -> account + profile created together
+                   code number assigned automatically
+                   -> back to the Profiles tab
+                   -> immediately visible to every other member
 
- The Server Action re-checks admin rights before writing - a non-admin
- cannot create a profile even by posting the form directly.
+ The code number is NOT entered by hand - it is generated from the highest
+ existing number, so duplicates can't happen.
 
-
--------------------------------------------------------------------------------
- THE ADMIN IS AN OVERSEER, NOT A PARTICIPANT
--------------------------------------------------------------------------------
-
- The admin account deliberately CANNOT take part in matching:
-
- - No "Express Interest" buttons anywhere - not on cards, not on detail
-   pages. The admin browses listings read-only.
- - No "My Matches" link in the navigation (replaced by "Admin"); typing
-   /matches directly redirects to /admin/matches.
- - Enforced server-side too: the interest action checks the role and
-   silently refuses admin sessions, so even a hand-crafted form POST
-   cannot create an interest from the admin account.
-
- The admin observes everyone's activity; members do the liking.
+ The Server Action re-checks admin rights before writing, so a non-admin
+ cannot register anyone even by posting the form directly.
 
 
 -------------------------------------------------------------------------------
  WHAT THE ADMIN CANNOT DO (YET)
 -------------------------------------------------------------------------------
 
- - Edit or delete an existing profile   (next feature to build)
- - Delete or suspend a member account
+ - Edit or delete an existing member or profile   (next feature to build)
+ - Suspend an account
  - Remove an interest on a member's behalf
  - Upload photos
  - Export the tables to CSV / Excel
@@ -289,29 +255,40 @@
  BACKEND HOOKS - where a real database plugs into this flow
 ===============================================================================
 
- STEP 3  overview counts   -> getAllUsers() + getProfiles() + getAllInterests()
- STEP 4  match activity    -> lib/data/interests.ts   getAllInterests()
-                              + findMutualMatches(interests, profiles)
- STEP 5  profiles table    -> lib/data/profiles.ts    getProfiles()
- STEP 6  members table     -> lib/data/users.ts       getAllUsers()
- STEP 7  add profile       -> lib/data/profiles.ts    createProfile()
+ STEP 3  overview        -> getAllUsers() + getProfiles() + getAllInterests()
+                            + findMutualPairs(interests)
+ STEP 4  match activity  -> interests.ts  getAllInterests()
+                                          findMutualPairs()
+ STEP 5  profiles table  -> profiles.ts   getProfiles()
+ STEP 6  members table   -> users.ts      getAllUsers()
+ STEP 7  register member -> users.ts      createUser()
+                            profiles.ts   createProfileForUser() + updateProfile()
 
- Admin screens join these three sets in memory (member -> interest -> profile).
- With a real database those joins become a single query per screen, but the
- page components stay exactly as they are. findMutualMatches() is a pure
- function over the loaded data; in SQL it becomes a self-join on interests
- through profiles.owner_user_id.
+ Admin screens join users + interests in memory. With a real database those
+ become one query per screen; the page components stay as they are.
+ findMutualPairs() is a pure function - in SQL it is a self-join on interests.
 
  SUGGESTED SCHEMA WHEN MIGRATING
  -------------------------------
    users      ( id, name, username, password_hash, role, created_at )
-   profiles   ( id, code_no, name, gender, dob, height_label, city,
+
+   profiles   ( id -> users.id PRIMARY KEY,      <- 1:1 with the account
+                code_no UNIQUE, name, gender, dob, height_label, city,
                 education[], profession, work_experience, family[],
-                partner_preference, photo_url,
-                owner_user_id -> users.id NULL,   <- "managed by"; enables
-                created_at )                         mutual-match detection
-   interests  ( id, user_id -> users.id, profile_id -> profiles.id,
+                partner_preference, photo_url, created_at )
+
+   interests  ( id,
+                from_user_id -> users.id,
+                to_user_id   -> users.id,
                 created_at )
-                UNIQUE (user_id, profile_id)   <- makes the toggle safe
+                UNIQUE (from_user_id, to_user_id)  <- makes the toggle safe
+                CHECK  (from_user_id <> to_user_id) <- no self-interest
+
+   -- mutual matches, as a query:
+   SELECT a.from_user_id, a.to_user_id, GREATEST(a.created_at, b.created_at)
+   FROM interests a
+   JOIN interests b ON a.from_user_id = b.to_user_id
+                   AND a.to_user_id   = b.from_user_id
+   WHERE a.from_user_id < a.to_user_id;   -- each pair once
 
 ===============================================================================

@@ -19,7 +19,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           href="/admin/profiles/new"
           className="mt-3 inline-block self-start rounded-full bg-linear-to-r from-pink-400 to-rose-400 px-5 py-2 text-sm font-medium text-white shadow-sm shadow-pink-200 transition hover:from-pink-500 hover:to-rose-500 dark:shadow-none sm:mt-0"
         >
-          + Add Profile
+          + Register Member
         </Link>
       </div>
 

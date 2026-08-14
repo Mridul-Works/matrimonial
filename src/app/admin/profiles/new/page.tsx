@@ -18,20 +18,33 @@ export default function NewProfilePage() {
       </Link>
 
       <h2 className="mt-3 font-heading text-xl text-zinc-900 dark:text-zinc-50">
-        Add a Profile
+        Register a Member
       </h2>
       <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
-        Photos aren&apos;t supported yet — profiles show an initials avatar until that
-        ships.
+        For walk-in registrations. This creates the member&apos;s login and their
+        profile together, so they can sign in and send interests themselves. The
+        code number is assigned automatically. Photos aren&apos;t supported yet.
       </p>
 
       <form
         action={formAction}
         className="mt-6 space-y-4 rounded-3xl border border-pink-100/70 bg-white/80 p-6 dark:border-zinc-800 dark:bg-zinc-900/80"
       >
+        <Field label="Full Name" name="name" errors={state?.errors?.name} />
+
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Field label="Code No" name="codeNo" placeholder="e.g. 51/26" errors={state?.errors?.codeNo} />
-          <Field label="Full Name" name="name" errors={state?.errors?.name} />
+          <Field
+            label="Username (for their login)"
+            name="username"
+            placeholder="e.g. ramesh"
+            errors={state?.errors?.username}
+          />
+          <Field
+            label="Temporary Password"
+            name="password"
+            placeholder="they can change it later"
+            errors={state?.errors?.password}
+          />
         </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
@@ -88,19 +101,6 @@ export default function NewProfilePage() {
           <textarea id="partnerPreference" name="partnerPreference" rows={3} className={inputClasses} />
         </div>
 
-        <div>
-          <Field
-            label="Managed by (member username, optional)"
-            name="managedBy"
-            placeholder="e.g. ravi"
-            errors={state?.errors?.managedBy}
-          />
-          <p className="mt-1 text-xs text-zinc-400 dark:text-zinc-500">
-            Link this listing to the member who manages it. Mutual matches can
-            only be detected for linked listings.
-          </p>
-        </div>
-
         {state?.message && (
           <p className="text-sm text-red-600" role="alert">
             {state.message}
@@ -112,7 +112,7 @@ export default function NewProfilePage() {
           disabled={pending}
           className="w-full rounded-full bg-linear-to-r from-pink-400 to-rose-400 py-2.5 text-sm font-medium text-white shadow-sm shadow-pink-200 transition hover:from-pink-500 hover:to-rose-500 disabled:opacity-60 dark:shadow-none"
         >
-          {pending ? "Adding profile..." : "Add Profile"}
+          {pending ? "Registering member..." : "Register Member"}
         </button>
       </form>
     </div>

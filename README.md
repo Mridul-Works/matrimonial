@@ -26,18 +26,39 @@ Then open **http://localhost:3311**.
 > matters: Turbopack (Next's default) crashes with a worker-spawn error on some
 > Windows setups. The fixed port avoids clashing with other local projects.
 
+### How the model works
+
+**Everyone except the admin is a member, and every member *is* a profile.**
+Members browse each other, send interests, and receive them; when two members
+have each sent the other an interest, that pair becomes a **match**.
+
+The admin is a pure overseer: no profile, no interests, cannot participate —
+only observe everyone's activity and register members.
+
 ### Demo accounts
 
-| Username | Password    | Role   | What they see                          |
-| -------- | ----------- | ------ | -------------------------------------- |
-| `admin`  | `admin`     | admin  | Everything, plus the admin console      |
-| `ravi`   | `ravi123`   | member | Member area only                        |
-| `pooja`  | `pooja123`  | member | Member area only                        |
-| `harish` | `harish123` | member | Member area only                        |
+All member passwords follow the pattern `<username>123`.
 
-The seed data ships with 9 profiles and 5 pre-recorded interests, so both the
-member area and the admin match log have something meaningful to show on first
-run.
+| Username   | Password      | Profile              | Notable state                    |
+| ---------- | ------------- | -------------------- | -------------------------------- |
+| `admin`    | `admin`       | —                    | Admin console only               |
+| `simran`   | `simran123`   | Simran Kaur, 17/26   | 1 match, 1 interest received     |
+| `sarbjeet` | `sarbjeet123` | Sarbjeet Singh, 42/26| 1 match (with Simran)            |
+| `vikram`   | `vikram123`   | Vikram Sain, 77/26   | 1 match (with Anjali)            |
+| `anjali`   | `anjali123`   | Anjali Sain, 61/26   | 1 match (with Vikram)            |
+| `priya`    | `priya123`    | Priya Verma, 23/26   | 1 sent, 1 received — no match yet|
+| `aman`     | `aman123`     | Aman Sharma, 08/26   | 1 interest received              |
+| `rahul`    | `rahul123`    | Rahul Nagpal, 56/26  | 1 sent, 1 received               |
+| `neha`     | `neha123`     | Neha Kumari, 12/26   | 1 interest sent                  |
+| `gurpreet` | `gurpreet123` | Gurpreet Singh, 31/26| 1 interest sent                  |
+
+The seed ships with 9 members and 8 interests forming **2 mutual matches**
+(Sarbjeet ↔ Simran, Vikram ↔ Anjali) plus several one-way interests, so every
+state — match, received, sent, nothing — is visible on first run.
+
+Log in as `simran` to see all three at once: a match with Sarbjeet, an
+unreciprocated interest received from Rahul, and the rest of the members to
+browse.
 
 ### Other commands
 
@@ -66,16 +87,17 @@ Step-by-step walkthroughs live in two plain-text files next to this README:
 | Route                  | Access | Purpose                                                            |
 | ---------------------- | ------ | ------------------------------------------------------------------ |
 | `/`                    | public | Landing page — full-height hero, what the service is                |
-| `/login`               | public | Sign in (redirects to `/profiles` if already signed in)             |
-| `/register`            | public | Create a member account                                             |
-| `/profiles`            | member | Browse with search, gender/age filters, and sorting                 |
+| `/login`               | public | Sign in (members → `/profiles`, admin → `/admin`)                   |
+| `/register`            | public | Create an account *and* its profile in one step                     |
+| `/profiles`            | member | Browse everyone else, with search, filters, and sorting             |
 | `/profiles/[id]`       | member | Full biodata + express-interest button                              |
-| `/matches`             | member | Profiles this member expressed interest in                          |
-| `/admin`               | admin  | Overview — counts and latest match activity                         |
-| `/admin/matches`       | admin  | Full log of who expressed interest in whom, searchable              |
-| `/admin/members`       | admin  | Every account by ID, with role and interests-sent count             |
-| `/admin/profiles`      | admin  | Every listing by code number, with interests-received count         |
-| `/admin/profiles/new`  | admin  | Add a profile                                                       |
+| `/matches`             | member | Three tabs: Matches (mutual), Interests Received, Interests Sent    |
+| `/my-profile`          | member | View and edit your own biodata                                      |
+| `/admin`               | admin  | Overview — counts and latest activity                               |
+| `/admin/matches`       | admin  | Mutual matches, plus the full who-liked-whom log                    |
+| `/admin/members`       | admin  | Every account by ID, with sent/received counts                      |
+| `/admin/profiles`      | admin  | Every profile by code number, linked to its account                 |
+| `/admin/profiles/new`  | admin  | Register a member (walk-in): creates their login + profile          |
 
 ---
 
@@ -164,9 +186,11 @@ These are deliberate trade-offs for a frontend-stage build, not bugs:
 - **No photos yet.** Profiles show a coloured initials avatar. The
   `photoUrl` field already exists on the profile type, so wiring up uploads
   later needs no schema change.
-- **Interest is one-directional.** A member expresses interest in a profile;
-  there's no mutual-match handshake, because profiles aren't user accounts.
-- **Admin can add but not edit or delete profiles.** The next obvious feature.
+- **No messaging.** Matched members can see each other, but there's no chat or
+  contact exchange yet — the next obvious feature.
+- **No notifications.** A member finds out about a new interest by visiting
+  their Matches page; nothing emails or alerts them.
+- **Admin can register but not edit or delete members.**
 - **Demo credentials are printed on the login page.** Remove that hint before
   real users arrive.
 - **`SESSION_SECRET` falls back to a baked-in dev value** if the environment

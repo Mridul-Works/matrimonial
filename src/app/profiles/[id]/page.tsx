@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { getUser } from "@/lib/dal";
 import { calculateAge, formatDob, getProfileById } from "@/lib/data/profiles";
-import { isInterested } from "@/lib/data/interests";
+import { hasSentInterest } from "@/lib/data/interests";
 import Avatar from "@/components/Avatar";
 import HeartIcon from "@/components/HeartIcon";
 import InterestButton from "@/components/InterestButton";
@@ -13,7 +13,8 @@ export default async function ProfileDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const user = await getUser();
-  if (!user) redirect("/login");
+  // Cookie is valid but the account is gone — clear it rather than loop.
+  if (!user) redirect("/session-expired");
   const isAdmin = user.role === "admin";
   const { id } = await params;
   const profile = await getProfileById(id);
@@ -22,7 +23,14 @@ export default async function ProfileDetailPage({
     notFound();
   }
 
-  const interested = isAdmin ? false : await isInterested(user.id, profile.id);
+  const isOwnProfile = profile.id === user.id;
+  const [iSent, theySent] = isAdmin
+    ? [false, false]
+    : await Promise.all([
+        hasSentInterest(user.id, profile.id),
+        hasSentInterest(profile.id, user.id),
+      ]);
+  const isMutual = iSent && theySent;
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-12">
@@ -31,6 +39,19 @@ export default async function ProfileDetailPage({
       </Link>
 
       <div className="mt-6 rounded-3xl border border-pink-100/70 bg-white/90 p-8 shadow-sm shadow-pink-100/50 backdrop-blur-sm dark:border-zinc-800 dark:bg-zinc-900/90 dark:shadow-none">
+        {isMutual && (
+          <p className="mb-5 flex items-center justify-center gap-2 rounded-2xl bg-linear-to-r from-rose-100 to-pink-100 px-4 py-3 text-sm font-semibold text-rose-700 dark:from-rose-950/50 dark:to-pink-950/50 dark:text-rose-300">
+            <HeartIcon className="h-4 w-4" />
+            It&apos;s a match — you both expressed interest in each other.
+          </p>
+        )}
+        {!isMutual && theySent && !isAdmin && (
+          <p className="mb-5 flex items-center justify-center gap-2 rounded-2xl bg-amber-50 px-4 py-3 text-sm font-medium text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
+            <HeartIcon className="h-4 w-4" />
+            {profile.name.split(" ")[0]} has expressed interest in you.
+          </p>
+        )}
+
         <div className="flex flex-col items-center gap-4 text-center sm:flex-row sm:items-start sm:text-left">
           <Avatar name={profile.name} photoUrl={profile.photoUrl} size={112} />
           <div className="flex-1">
@@ -43,15 +64,25 @@ export default async function ProfileDetailPage({
             <p className="text-sm text-zinc-500 dark:text-zinc-400">
               {calculateAge(profile.dob)} years old &bull; {profile.heightLabel}
             </p>
-            {!isAdmin && (
-              <div className="mt-4 flex justify-center sm:justify-start">
-                <InterestButton
-                  profileId={profile.id}
-                  isInterested={interested}
-                  redirectTo={`/profiles/${profile.id}`}
-                  size="md"
-                />
-              </div>
+            {isOwnProfile ? (
+              <Link
+                href="/my-profile"
+                className="mt-4 inline-block rounded-full border border-pink-200 px-5 py-2 text-sm font-medium text-pink-600 transition hover:bg-pink-50 dark:border-zinc-700 dark:text-pink-300 dark:hover:bg-zinc-900"
+              >
+                This is you — edit your profile
+              </Link>
+            ) : (
+              !isAdmin && (
+                <div className="mt-4 flex justify-center sm:justify-start">
+                  <InterestButton
+                    toUserId={profile.id}
+                    isInterested={iSent}
+                    isMutual={isMutual}
+                    redirectTo={`/profiles/${profile.id}`}
+                    size="md"
+                  />
+                </div>
+              )
             )}
           </div>
         </div>

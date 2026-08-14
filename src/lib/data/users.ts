@@ -13,8 +13,10 @@ export type AppUser = {
   createdAt: string;
 };
 
-// Seed data for the showcase, persisted to a JSON file on first read.
-// Swap this module for a real database before shipping this beyond a demo.
+// Every member account owns exactly one profile, keyed by the same id
+// (see lib/data/profiles.ts). Admins have no profile — they oversee only.
+// Seed data is persisted to a JSON file on first read; swap this module for
+// a real database before shipping beyond a demo.
 const SEED_USERS: AppUser[] = [
   {
     id: "admin",
@@ -24,30 +26,77 @@ const SEED_USERS: AppUser[] = [
     role: "admin",
     createdAt: new Date(2026, 0, 1).toISOString(),
   },
-  // Demo members so the admin panel has activity to show out of the box.
   {
-    id: "member-ravi",
-    name: "Ravi Sain",
-    username: "ravi",
-    passwordHash: bcrypt.hashSync("ravi123", 10),
+    id: "u-sarbjeet",
+    name: "Sarbjeet Singh",
+    username: "sarbjeet",
+    passwordHash: bcrypt.hashSync("sarbjeet123", 10),
     role: "member",
-    createdAt: new Date(2026, 0, 6).toISOString(),
+    createdAt: new Date(2026, 0, 1).toISOString(),
   },
   {
-    id: "member-pooja",
-    name: "Pooja Devi",
-    username: "pooja",
-    passwordHash: bcrypt.hashSync("pooja123", 10),
+    id: "u-simran",
+    name: "Simran Kaur",
+    username: "simran",
+    passwordHash: bcrypt.hashSync("simran123", 10),
     role: "member",
-    createdAt: new Date(2026, 0, 9).toISOString(),
+    createdAt: new Date(2026, 0, 2).toISOString(),
   },
   {
-    id: "member-harish",
-    name: "Harish Kumar",
-    username: "harish",
-    passwordHash: bcrypt.hashSync("harish123", 10),
+    id: "u-aman",
+    name: "Aman Sharma",
+    username: "aman",
+    passwordHash: bcrypt.hashSync("aman123", 10),
     role: "member",
-    createdAt: new Date(2026, 0, 14).toISOString(),
+    createdAt: new Date(2026, 0, 3).toISOString(),
+  },
+  {
+    id: "u-priya",
+    name: "Priya Verma",
+    username: "priya",
+    passwordHash: bcrypt.hashSync("priya123", 10),
+    role: "member",
+    createdAt: new Date(2026, 0, 5).toISOString(),
+  },
+  {
+    id: "u-gurpreet",
+    name: "Gurpreet Singh",
+    username: "gurpreet",
+    passwordHash: bcrypt.hashSync("gurpreet123", 10),
+    role: "member",
+    createdAt: new Date(2026, 0, 8).toISOString(),
+  },
+  {
+    id: "u-neha",
+    name: "Neha Kumari",
+    username: "neha",
+    passwordHash: bcrypt.hashSync("neha123", 10),
+    role: "member",
+    createdAt: new Date(2026, 0, 10).toISOString(),
+  },
+  {
+    id: "u-rahul",
+    name: "Rahul Nagpal",
+    username: "rahul",
+    passwordHash: bcrypt.hashSync("rahul123", 10),
+    role: "member",
+    createdAt: new Date(2026, 0, 12).toISOString(),
+  },
+  {
+    id: "u-anjali",
+    name: "Anjali Sain",
+    username: "anjali",
+    passwordHash: bcrypt.hashSync("anjali123", 10),
+    role: "member",
+    createdAt: new Date(2026, 0, 15).toISOString(),
+  },
+  {
+    id: "u-vikram",
+    name: "Vikram Sain",
+    username: "vikram",
+    passwordHash: bcrypt.hashSync("vikram123", 10),
+    role: "member",
+    createdAt: new Date(2026, 0, 18).toISOString(),
   },
 ];
 
@@ -70,7 +119,7 @@ export async function createUser(input: {
 }): Promise<AppUser> {
   const users = loadUsers();
   const user: AppUser = {
-    id: crypto.randomUUID(),
+    id: `u-${crypto.randomUUID().slice(0, 8)}`,
     name: input.name,
     username: input.username,
     passwordHash: bcrypt.hashSync(input.password, 10),

@@ -39,7 +39,13 @@ export const requireAdmin = cache(async () => {
   const session = await verifySession();
   const user = await findUserById(session.userId);
 
-  if (!user || user.role !== "admin") {
+  // Cookie is valid but the account is gone — clear it rather than bounce
+  // between the proxy and the pages forever.
+  if (!user) {
+    redirect("/session-expired");
+  }
+
+  if (user.role !== "admin") {
     redirect("/profiles");
   }
 

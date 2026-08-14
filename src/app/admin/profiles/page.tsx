@@ -22,17 +22,19 @@ export default async function AdminProfilesPage({
   const userById = new Map(users.map((u) => [u.id, u]));
 
   const receivedCount = new Map<string, number>();
-  for (const interest of interests) {
-    receivedCount.set(
-      interest.profileId,
-      (receivedCount.get(interest.profileId) ?? 0) + 1
-    );
+  const sentCount = new Map<string, number>();
+  for (const i of interests) {
+    receivedCount.set(i.toUserId, (receivedCount.get(i.toUserId) ?? 0) + 1);
+    sentCount.set(i.fromUserId, (sentCount.get(i.fromUserId) ?? 0) + 1);
   }
 
   const needle = q?.trim().toLowerCase();
   const filtered = needle
     ? profiles.filter((p) =>
-        [p.codeNo, p.name, p.profession, p.city].join(" ").toLowerCase().includes(needle)
+        [p.codeNo, p.name, p.profession, p.city, userById.get(p.id)?.username ?? ""]
+          .join(" ")
+          .toLowerCase()
+          .includes(needle)
       )
     : profiles;
 
@@ -52,9 +54,9 @@ export default async function AdminProfilesPage({
 
       <div className="mt-4">
         <AdminTable
-          columns={["Code No", "Name", "Gender", "Age", "City", "Profession", "Managed By", "Interests Received", "Added"]}
+          columns={["Code No", "Name", "Username", "Gender", "Age", "City", "Profession", "Sent", "Received", "Added"]}
           rows={filtered.map((p) => {
-            const manager = p.ownerUserId ? userById.get(p.ownerUserId) : undefined;
+            const account = userById.get(p.id);
             return [
               <IdBadge key="code">{p.codeNo}</IdBadge>,
               <Link
@@ -64,17 +66,16 @@ export default async function AdminProfilesPage({
               >
                 {p.name}
               </Link>,
+              account ? (
+                <IdBadge key="acct">{account.username}</IdBadge>
+              ) : (
+                <span key="acct" className="text-zinc-400">—</span>
+              ),
               p.gender === "male" ? "Male" : "Female",
               <span key="age" className="tabular-nums">{calculateAge(p.dob)}</span>,
               p.city,
               p.profession,
-              manager ? (
-                <span key="mgr">
-                  {manager.name} <IdBadge>{manager.username}</IdBadge>
-                </span>
-              ) : (
-                <span key="mgr" className="text-zinc-400">—</span>
-              ),
+              <span key="sent" className="tabular-nums">{sentCount.get(p.id) ?? 0}</span>,
               <span key="rec" className="tabular-nums">{receivedCount.get(p.id) ?? 0}</span>,
               formatDob(p.createdAt),
             ];

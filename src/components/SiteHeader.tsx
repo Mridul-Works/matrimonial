@@ -34,9 +34,14 @@ export default async function SiteHeader() {
                   Admin
                 </Link>
               ) : (
-                <Link href="/matches" className={navLinkClasses}>
-                  My Matches
-                </Link>
+                <>
+                  <Link href="/matches" className={navLinkClasses}>
+                    My Matches
+                  </Link>
+                  <Link href="/my-profile" className={navLinkClasses}>
+                    My Profile
+                  </Link>
+                </>
               )}
               <span className="hidden text-zinc-400 lg:inline">
                 Signed in as {user.name}
@@ -90,9 +95,14 @@ export default async function SiteHeader() {
                     Admin
                   </Link>
                 ) : (
-                  <Link href="/matches" className={mobileLinkClasses}>
-                    My Matches
-                  </Link>
+                  <>
+                    <Link href="/matches" className={mobileLinkClasses}>
+                      My Matches
+                    </Link>
+                    <Link href="/my-profile" className={mobileLinkClasses}>
+                      My Profile
+                    </Link>
+                  </>
                 )}
                 <form action={logout} className="mt-1 border-t border-pink-100/70 pt-1 dark:border-zinc-800">
                   <button type="submit" className={`${mobileLinkClasses} w-full text-left text-pink-600 dark:text-pink-300`}>

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { requireAdmin } from "@/lib/dal";
 import { getAllUsers } from "@/lib/data/users";
 import { getProfiles } from "@/lib/data/profiles";
-import { findMutualMatches, getAllInterests } from "@/lib/data/interests";
+import { findMutualPairs, getAllInterests } from "@/lib/data/interests";
 import { IdBadge } from "@/components/admin/AdminTable";
 
 function formatDateTime(iso: string): string {
@@ -26,7 +26,7 @@ export default async function AdminOverviewPage() {
   const userById = new Map(users.map((u) => [u.id, u]));
   const profileById = new Map(profiles.map((p) => [p.id, p]));
   const members = users.filter((u) => u.role === "member");
-  const mutualMatches = findMutualMatches(interests, profiles);
+  const mutualMatches = findMutualPairs(interests);
   const recent = interests.slice(0, 6);
 
   return (
@@ -63,18 +63,19 @@ export default async function AdminOverviewPage() {
         ) : (
           <ul className="mt-3 divide-y divide-pink-50 rounded-2xl border border-pink-100/70 bg-white dark:divide-zinc-800/60 dark:border-zinc-800 dark:bg-zinc-900">
             {recent.map((interest) => {
-              const member = userById.get(interest.userId);
-              const profile = profileById.get(interest.profileId);
+              const from = userById.get(interest.fromUserId);
+              const to = userById.get(interest.toUserId);
+              const toProfile = profileById.get(interest.toUserId);
               return (
                 <li key={interest.id} className="flex flex-wrap items-center gap-x-2 gap-y-1 px-4 py-3 text-sm">
                   <span className="font-medium text-zinc-800 dark:text-zinc-200">
-                    {member?.name ?? "Deleted member"}
+                    {from?.name ?? "Deleted member"}
                   </span>
                   <span className="text-pink-400">&hearts;</span>
                   <span className="font-medium text-zinc-800 dark:text-zinc-200">
-                    {profile?.name ?? "Removed profile"}
+                    {to?.name ?? "Deleted member"}
                   </span>
-                  {profile && <IdBadge>{profile.codeNo}</IdBadge>}
+                  {toProfile && <IdBadge>{toProfile.codeNo}</IdBadge>}
                   <span className="ml-auto text-xs text-zinc-400">
                     {formatDateTime(interest.createdAt)}
                   </span>

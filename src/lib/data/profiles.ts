@@ -1,7 +1,11 @@
 import "server-only";
 import { readStore, writeStore } from "@/lib/data/store";
+import { getAllUsers } from "@/lib/data/users";
 
 export type MatrimonialProfile = {
+  // Same value as the owning user's id — every member account has exactly
+  // one profile, and a profile always belongs to exactly one member.
+  // Admins have no profile; they oversee rather than participate.
   id: string;
   codeNo: string;
   name: string;
@@ -15,19 +19,12 @@ export type MatrimonialProfile = {
   family: { label: string; value: string }[];
   partnerPreference: string;
   photoUrl?: string;
-  // Member account that manages this listing (a person often manages a
-  // biodata for themselves or a family member). Links interests back to a
-  // responsible account, which is what makes mutual-match detection possible.
-  ownerUserId?: string;
   createdAt: string;
 };
 
-// Seed data for the showcase, persisted to a JSON file on first read.
-// Swap this module for a real database query (Prisma, Postgres, etc.) once
-// the app moves past demo stage.
 const SEED_PROFILES: MatrimonialProfile[] = [
   {
-    id: "42-26",
+    id: "u-sarbjeet",
     codeNo: "42/26",
     name: "Sarbjeet Singh",
     gender: "male",
@@ -47,7 +44,7 @@ const SEED_PROFILES: MatrimonialProfile[] = [
     createdAt: new Date(2026, 0, 1).toISOString(),
   },
   {
-    id: "17-26",
+    id: "u-simran",
     codeNo: "17/26",
     name: "Simran Kaur",
     gender: "female",
@@ -63,11 +60,10 @@ const SEED_PROFILES: MatrimonialProfile[] = [
     ],
     partnerPreference:
       "Looking for a well-settled, respectful groom from a good family background who supports her working after marriage.",
-    ownerUserId: "member-pooja", // Pooja manages her sister Simran's listing
     createdAt: new Date(2026, 0, 2).toISOString(),
   },
   {
-    id: "08-26",
+    id: "u-aman",
     codeNo: "08/26",
     name: "Aman Sharma",
     gender: "male",
@@ -83,11 +79,10 @@ const SEED_PROFILES: MatrimonialProfile[] = [
     ],
     partnerPreference:
       "Seeking an educated, homely girl who is understanding and supportive, open to settling in Chandigarh.",
-    ownerUserId: "member-harish", // Harish manages his cousin Aman's listing
     createdAt: new Date(2026, 0, 3).toISOString(),
   },
   {
-    id: "23-26",
+    id: "u-priya",
     codeNo: "23/26",
     name: "Priya Verma",
     gender: "female",
@@ -106,7 +101,7 @@ const SEED_PROFILES: MatrimonialProfile[] = [
     createdAt: new Date(2026, 0, 5).toISOString(),
   },
   {
-    id: "31-26",
+    id: "u-gurpreet",
     codeNo: "31/26",
     name: "Gurpreet Singh",
     gender: "male",
@@ -125,7 +120,7 @@ const SEED_PROFILES: MatrimonialProfile[] = [
     createdAt: new Date(2026, 0, 8).toISOString(),
   },
   {
-    id: "12-26",
+    id: "u-neha",
     codeNo: "12/26",
     name: "Neha Kumari",
     gender: "female",
@@ -144,7 +139,7 @@ const SEED_PROFILES: MatrimonialProfile[] = [
     createdAt: new Date(2026, 0, 10).toISOString(),
   },
   {
-    id: "56-26",
+    id: "u-rahul",
     codeNo: "56/26",
     name: "Rahul Nagpal",
     gender: "male",
@@ -163,7 +158,7 @@ const SEED_PROFILES: MatrimonialProfile[] = [
     createdAt: new Date(2026, 0, 12).toISOString(),
   },
   {
-    id: "61-26",
+    id: "u-anjali",
     codeNo: "61/26",
     name: "Anjali Sain",
     gender: "female",
@@ -182,7 +177,7 @@ const SEED_PROFILES: MatrimonialProfile[] = [
     createdAt: new Date(2026, 0, 15).toISOString(),
   },
   {
-    id: "77-26",
+    id: "u-vikram",
     codeNo: "77/26",
     name: "Vikram Sain",
     gender: "male",
@@ -198,7 +193,6 @@ const SEED_PROFILES: MatrimonialProfile[] = [
     ],
     partnerPreference:
       "Simple living, honest girl who values family; caste no bar within community.",
-    ownerUserId: "member-ravi", // Ravi manages his brother Vikram's listing
     createdAt: new Date(2026, 0, 18).toISOString(),
   },
 ];
@@ -234,6 +228,9 @@ export type ProfileFilters = {
   minAge?: number;
   maxAge?: number;
   sort?: ProfileSort;
+  // Hide one profile from results — used to keep a member from browsing
+  // (or expressing interest in) themselves.
+  excludeUserId?: string;
 };
 
 export async function getProfiles(filters?: ProfileFilters): Promise<MatrimonialProfile[]> {
@@ -242,7 +239,14 @@ export async function getProfiles(filters?: ProfileFilters): Promise<Matrimonial
 
   const q = filters.q?.trim().toLowerCase();
 
+  // Usernames are searchable too — members know each other by handle.
+  const usernameById = new Map<string, string>();
+  if (q) {
+    for (const u of await getAllUsers()) usernameById.set(u.id, u.username);
+  }
+
   const result = profiles.filter((profile) => {
+    if (filters.excludeUserId && profile.id === filters.excludeUserId) return false;
     if (filters.gender && profile.gender !== filters.gender) return false;
 
     const age = calculateAge(profile.dob);
@@ -255,6 +259,7 @@ export async function getProfiles(filters?: ProfileFilters): Promise<Matrimonial
         profile.profession,
         profile.codeNo,
         profile.city,
+        usernameById.get(profile.id) ?? "",
         ...profile.education,
       ]
         .join(" ")
@@ -280,41 +285,75 @@ export async function getProfiles(filters?: ProfileFilters): Promise<Matrimonial
   return result;
 }
 
+// A profile's id IS its owner's user id, so these are the same lookup —
+// both names exist because call sites read more clearly one way or the other.
 export async function getProfileById(
   id: string
 ): Promise<MatrimonialProfile | undefined> {
   return loadProfiles().find((profile) => profile.id === id);
 }
 
-function slugify(name: string): string {
-  return name
-    .toLowerCase()
-    .trim()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-|-$)/g, "");
+export const getProfileByUserId = getProfileById;
+
+export async function getProfilesByIds(ids: string[]): Promise<MatrimonialProfile[]> {
+  const profiles = loadProfiles();
+  return ids
+    .map((id) => profiles.find((p) => p.id === id))
+    .filter((p): p is MatrimonialProfile => Boolean(p));
 }
 
-export async function createProfile(input: {
-  codeNo: string;
+function nextCodeNo(profiles: MatrimonialProfile[]): string {
+  const year = new Date().getFullYear() % 100;
+  const highest = profiles.reduce((max, p) => {
+    const n = Number(p.codeNo.split("/")[0]);
+    return Number.isFinite(n) && n > max ? n : max;
+  }, 0);
+  return `${String(highest + 1).padStart(2, "0")}/${year}`;
+}
+
+// Called during registration — a member and their profile are created
+// together, so there is never an account without a listing.
+export async function createProfileForUser(input: {
+  userId: string;
   name: string;
   gender: "male" | "female";
   dob: string;
-  heightLabel: string;
   city: string;
-  education: string[];
   profession: string;
-  workExperience: string;
-  family: { label: string; value: string }[];
-  partnerPreference: string;
-  ownerUserId?: string;
 }): Promise<MatrimonialProfile> {
   const profiles = loadProfiles();
   const profile: MatrimonialProfile = {
-    ...input,
-    id: `${slugify(input.name)}-${Math.random().toString(36).slice(2, 7)}`,
+    id: input.userId,
+    codeNo: nextCodeNo(profiles),
+    name: input.name,
+    gender: input.gender,
+    dob: input.dob,
+    heightLabel: "Not specified",
+    city: input.city,
+    education: ["Not specified"],
+    profession: input.profession,
+    workExperience: "Not specified",
+    family: [
+      { label: "Brother", value: "0" },
+      { label: "Sister", value: "0" },
+    ],
+    partnerPreference: "Not specified",
     createdAt: new Date().toISOString(),
   };
   profiles.push(profile);
   writeStore("profiles", profiles);
   return profile;
+}
+
+export async function updateProfile(
+  userId: string,
+  patch: Partial<Omit<MatrimonialProfile, "id" | "codeNo" | "createdAt">>
+): Promise<MatrimonialProfile | undefined> {
+  const profiles = loadProfiles();
+  const index = profiles.findIndex((p) => p.id === userId);
+  if (index < 0) return undefined;
+
+  profiles[index] = { ...profiles[index], ...patch };
+  writeStore("profiles", profiles);
+  return profiles[index];
 }

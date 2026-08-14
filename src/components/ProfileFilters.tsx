@@ -22,7 +22,7 @@ export default function ProfileFilters({ params }: { params: ProfileSearchParams
         <input
           type="text"
           name="q"
-          placeholder="Search name, profession, city, education..."
+          placeholder="Search name, profession, city, or managing member..."
           defaultValue={params.q}
           className={`${inputClasses} sm:col-span-3`}
         />
