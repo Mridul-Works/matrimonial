@@ -150,6 +150,12 @@
  Filters live in the URL, so a search is bookmarkable:
    /profiles?q=doctor&gender=female&minAge=25&maxAge=32&sort=age-asc
 
+ PAGINATION: 12 profiles per page. With more results, a numbered pager
+ (Prev / 1 2 3 ... / Next) appears under the grid and the caption becomes
+ "Showing 1-12 of 47 profiles." The page number lives in the URL too
+ (?page=2) and combines with the filters; changing filters or searching
+ resets to page 1.
+
 
 -------------------------------------------------------------------------------
  STEP 5 - VIEW A FULL PROFILE                                 [ /profiles/:id ]

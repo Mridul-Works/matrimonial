@@ -4,13 +4,22 @@ export default function AdminSearch({
   placeholder,
   defaultValue,
   clearHref,
+  hidden,
 }: {
   placeholder: string;
   defaultValue?: string;
   clearHref: string;
+  // Query params the search submit must carry along (e.g. filter=pending) —
+  // a GET form replaces the whole query string, so anything not in a field
+  // would be dropped. Deliberately excludes `page`: a new search restarts
+  // at page 1.
+  hidden?: Record<string, string>;
 }) {
   return (
     <form className="flex flex-wrap items-center gap-2">
+      {Object.entries(hidden ?? {}).map(([name, value]) => (
+        <input key={name} type="hidden" name={name} value={value} />
+      ))}
       <input
         type="text"
         name="q"

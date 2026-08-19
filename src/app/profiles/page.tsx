@@ -7,6 +7,11 @@ import {
 } from "@/lib/data/interests";
 import ProfileCard from "@/components/ProfileCard";
 import ProfileFilters, { type ProfileSearchParams } from "@/components/ProfileFilters";
+import Pagination, { paginate } from "@/components/Pagination";
+
+// Two full rows on the 3-column desktop grid, and an even count on the
+// 2-column tablet grid too.
+const PROFILES_PER_PAGE = 12;
 
 export default async function ProfilesPage({
   searchParams,
@@ -43,6 +48,12 @@ export default async function ProfilesPage({
   const sent = new Set(sentIds);
   const received = new Set(receivedIds);
 
+  const { pageItems, page, totalPages, total, rangeStart, rangeEnd } = paginate(
+    profiles,
+    params.page,
+    PROFILES_PER_PAGE
+  );
+
   return (
     <div className="mx-auto max-w-5xl px-6 py-12">
       <h1 className="font-heading text-2xl text-zinc-900 dark:text-zinc-50">
@@ -57,16 +68,20 @@ export default async function ProfilesPage({
       <ProfileFilters params={params} />
 
       <p className="mt-6 text-sm text-zinc-500 dark:text-zinc-400">
-        {profiles.length} profile{profiles.length === 1 ? "" : "s"} found.
+        {total === 0
+          ? "0 profiles found."
+          : totalPages > 1
+            ? `Showing ${rangeStart}–${rangeEnd} of ${total} profiles.`
+            : `${total} profile${total === 1 ? "" : "s"} found.`}
       </p>
 
-      {profiles.length === 0 ? (
+      {total === 0 ? (
         <p className="mt-8 rounded-2xl border border-pink-100/70 bg-white/70 p-8 text-center text-sm text-zinc-500 dark:border-zinc-800 dark:bg-zinc-900/70 dark:text-zinc-400">
           No profiles match your filters. Try widening your search.
         </p>
       ) : (
         <div className="mt-4 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {profiles.map((profile) => {
+          {pageItems.map((profile) => {
             const iSent = sent.has(profile.id);
             const theySent = received.has(profile.id);
             return (
@@ -82,6 +97,19 @@ export default async function ProfilesPage({
           })}
         </div>
       )}
+
+      <Pagination
+        basePath="/profiles"
+        params={{
+          q: params.q,
+          gender,
+          minAge: params.minAge,
+          maxAge: params.maxAge,
+          sort: params.sort,
+        }}
+        page={page}
+        totalPages={totalPages}
+      />
     </div>
   );
 }

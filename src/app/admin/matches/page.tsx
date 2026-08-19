@@ -6,6 +6,9 @@ import { findMutualPairs, getAllInterests } from "@/lib/data/interests";
 import { AdminTable, IdBadge } from "@/components/admin/AdminTable";
 import AdminSearch from "@/components/admin/AdminSearch";
 import HeartIcon from "@/components/HeartIcon";
+import Pagination, { paginate } from "@/components/Pagination";
+
+const INTERESTS_PER_PAGE = 15;
 
 function formatDateTime(iso: string): string {
   return new Date(iso).toLocaleString("en-IN", {
@@ -20,10 +23,10 @@ function formatDateTime(iso: string): string {
 export default async function AdminMatchesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{ q?: string; page?: string }>;
 }) {
   await requireAdmin();
-  const { q } = await searchParams;
+  const { q, page: pageParam } = await searchParams;
 
   const [users, profiles, interests] = await Promise.all([
     getAllUsers(),
@@ -49,6 +52,12 @@ export default async function AdminMatchesPage({
         `${label(i.fromUserId)} ${label(i.toUserId)}`.toLowerCase().includes(needle)
       )
     : interests;
+
+  const { pageItems, page, totalPages, total, rangeStart, rangeEnd } = paginate(
+    filtered,
+    pageParam,
+    INTERESTS_PER_PAGE
+  );
 
   return (
     <div>
@@ -116,8 +125,18 @@ export default async function AdminMatchesPage({
         </h2>
         <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-sm text-zinc-500 dark:text-zinc-400">
-            {filtered.length} interest{filtered.length === 1 ? "" : "s"}
-            {needle ? ` matching “${q}”` : " sent in total"}. Newest first.
+            {totalPages > 1 ? (
+              <>
+                Showing {rangeStart}–{rangeEnd} of {total} interest
+                {total === 1 ? "" : "s"}
+                {needle ? ` matching “${q}”` : ""}. Newest first.
+              </>
+            ) : (
+              <>
+                {total} interest{total === 1 ? "" : "s"}
+                {needle ? ` matching “${q}”` : " sent in total"}. Newest first.
+              </>
+            )}
           </p>
           <AdminSearch
             placeholder="Search by either member..."
@@ -129,7 +148,7 @@ export default async function AdminMatchesPage({
         <div className="mt-4">
           <AdminTable
             columns={["From (member)", "To (member)", "Status", "When", "Details"]}
-            rows={filtered.map((i) => {
+            rows={pageItems.map((i) => {
               const from = userById.get(i.fromUserId);
               const to = userById.get(i.toUserId);
               const toProfile = profileById.get(i.toUserId);
@@ -172,6 +191,13 @@ export default async function AdminMatchesPage({
             }
           />
         </div>
+
+        <Pagination
+          basePath="/admin/matches"
+          params={{ q }}
+          page={page}
+          totalPages={totalPages}
+        />
       </section>
     </div>
   );

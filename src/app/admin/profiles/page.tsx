@@ -5,14 +5,17 @@ import { getAllInterests } from "@/lib/data/interests";
 import { getAllUsers } from "@/lib/data/users";
 import { AdminTable, IdBadge } from "@/components/admin/AdminTable";
 import AdminSearch from "@/components/admin/AdminSearch";
+import Pagination, { paginate } from "@/components/Pagination";
+
+const PROFILES_PER_PAGE = 15;
 
 export default async function AdminProfilesPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{ q?: string; page?: string }>;
 }) {
   await requireAdmin();
-  const { q } = await searchParams;
+  const { q, page: pageParam } = await searchParams;
 
   const [profiles, interests, users] = await Promise.all([
     getProfiles(),
@@ -38,12 +41,28 @@ export default async function AdminProfilesPage({
       )
     : profiles;
 
+  const { pageItems, page, totalPages, total, rangeStart, rangeEnd } = paginate(
+    filtered,
+    pageParam,
+    PROFILES_PER_PAGE
+  );
+
   return (
     <div>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-sm text-zinc-500 dark:text-zinc-400">
-          {filtered.length} profile{filtered.length === 1 ? "" : "s"}
-          {needle ? ` matching “${q}”` : " listed"}.
+          {totalPages > 1 ? (
+            <>
+              Showing {rangeStart}–{rangeEnd} of {total} profile
+              {total === 1 ? "" : "s"}
+              {needle ? ` matching “${q}”` : ""}.
+            </>
+          ) : (
+            <>
+              {total} profile{total === 1 ? "" : "s"}
+              {needle ? ` matching “${q}”` : " listed"}.
+            </>
+          )}
         </p>
         <AdminSearch
           placeholder="Search by code, name, city..."
@@ -55,7 +74,7 @@ export default async function AdminProfilesPage({
       <div className="mt-4">
         <AdminTable
           columns={["Code No", "Name", "Username", "Gender", "Age", "City", "Profession", "Sent", "Received", "Added"]}
-          rows={filtered.map((p) => {
+          rows={pageItems.map((p) => {
             const account = userById.get(p.id);
             return [
               <IdBadge key="code">{p.codeNo}</IdBadge>,
@@ -83,6 +102,13 @@ export default async function AdminProfilesPage({
           emptyLabel={needle ? "No profiles match that search." : "No profiles yet."}
         />
       </div>
+
+      <Pagination
+        basePath="/admin/profiles"
+        params={{ q }}
+        page={page}
+        totalPages={totalPages}
+      />
     </div>
   );
 }

@@ -6,14 +6,17 @@ import { formatDob } from "@/lib/data/profiles";
 import { AdminTable, IdBadge } from "@/components/admin/AdminTable";
 import AdminSearch from "@/components/admin/AdminSearch";
 import PhoneCell from "@/components/admin/PhoneCell";
+import Pagination, { paginate } from "@/components/Pagination";
+
+const MEMBERS_PER_PAGE = 15;
 
 export default async function AdminMembersPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string; filter?: string }>;
+  searchParams: Promise<{ q?: string; filter?: string; page?: string }>;
 }) {
   await requireAdmin();
-  const { q, filter } = await searchParams;
+  const { q, filter, page: pageParam } = await searchParams;
   const pendingOnly = filter === "pending";
 
   const [users, interests] = await Promise.all([getAllUsers(), getAllInterests()]);
@@ -47,6 +50,12 @@ export default async function AdminMembersPage({
       .sort((a, b) => a.createdAt.localeCompare(b.createdAt));
   }
 
+  const { pageItems, page, totalPages, total, rangeStart, rangeEnd } = paginate(
+    filtered,
+    pageParam,
+    MEMBERS_PER_PAGE
+  );
+
   const filterChip = (active: boolean) =>
     active
       ? "rounded-full bg-pink-500 px-3 py-1 text-xs font-semibold text-white"
@@ -72,19 +81,26 @@ export default async function AdminMembersPage({
           placeholder="Search by ID, name, username, phone..."
           defaultValue={q}
           clearHref={pendingOnly ? "/admin/members?filter=pending" : "/admin/members"}
+          hidden={pendingOnly ? { filter: "pending" } : undefined}
         />
       </div>
 
       <p className="mt-3 text-sm text-zinc-500 dark:text-zinc-400">
         {pendingOnly ? (
           <>
-            {filtered.length} confirmation call{filtered.length === 1 ? "" : "s"}{" "}
-            waiting{needle ? ` matching “${q}”` : ""}. Oldest first — registration
+            {total} confirmation call{total === 1 ? "" : "s"} waiting
+            {needle ? ` matching “${q}”` : ""}. Oldest first — registration
             promises the call within 48 hours.
+          </>
+        ) : totalPages > 1 ? (
+          <>
+            Showing {rangeStart}–{rangeEnd} of {total} account
+            {total === 1 ? "" : "s"}
+            {needle ? ` matching “${q}”` : ""}.
           </>
         ) : (
           <>
-            {filtered.length} account{filtered.length === 1 ? "" : "s"}
+            {total} account{total === 1 ? "" : "s"}
             {needle ? ` matching “${q}”` : " registered"}.
           </>
         )}
@@ -93,7 +109,7 @@ export default async function AdminMembersPage({
       <div className="mt-4">
         <AdminTable
           columns={["ID", "Name", "Username", "Phone", "Role", "Sent", "Received", "Joined"]}
-          rows={filtered.map((u) => [
+          rows={pageItems.map((u) => [
             <IdBadge key="id">{u.id}</IdBadge>,
             u.name,
             u.username,
@@ -134,6 +150,13 @@ export default async function AdminMembersPage({
           }
         />
       </div>
+
+      <Pagination
+        basePath="/admin/members"
+        params={{ q, filter }}
+        page={page}
+        totalPages={totalPages}
+      />
     </div>
   );
 }

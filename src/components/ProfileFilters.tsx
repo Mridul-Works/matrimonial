@@ -6,6 +6,9 @@ export type ProfileSearchParams = {
   minAge?: string;
   maxAge?: string;
   sort?: string;
+  // Handled by the page, not this form — a fresh search submit drops it,
+  // which is exactly right: new filters restart at page 1.
+  page?: string;
 };
 
 const inputClasses =
