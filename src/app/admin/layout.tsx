@@ -1,8 +1,14 @@
 import Link from "next/link";
 import HeartIcon from "@/components/HeartIcon";
 import AdminTabs from "@/components/admin/AdminTabs";
+import { getAllUsers } from "@/lib/data/users";
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+export default async function AdminLayout({ children }: { children: React.ReactNode }) {
+  // Amber count on the Members tab — how many confirmation calls are
+  // waiting, visible from every admin screen so the queue can't be missed.
+  const users = await getAllUsers();
+  const pendingCalls = users.filter((u) => u.phone && !u.phoneVerified).length;
+
   return (
     <div className="mx-auto w-full min-w-0 max-w-6xl px-4 py-8 sm:px-6 sm:py-10">
       <div className="flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
@@ -23,7 +29,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </Link>
       </div>
 
-      <AdminTabs />
+      <AdminTabs pendingCalls={pendingCalls} />
 
       <div className="mt-6 min-w-0">{children}</div>
     </div>

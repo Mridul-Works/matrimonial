@@ -251,6 +251,14 @@
 
  Logout clears the session cookie and returns to /login.
 
+ FLOATING WHATSAPP BUTTON (bottom-right, every page while signed in):
+ members never see each other's numbers, so after a match this is the way
+ forward - the green button opens a WhatsApp chat with the ADMIN, message
+ pre-filled with your name and code number ("...I would like to talk to
+ you about my matches"). The admin then connects the two families by
+ phone. Hidden for the admin and for logged-out visitors; requires
+ ADMIN_WHATSAPP in .env.local (or a phone on the admin account).
+
 
 -------------------------------------------------------------------------------
  WHAT A MEMBER CANNOT DO

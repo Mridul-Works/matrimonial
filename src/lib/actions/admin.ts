@@ -8,6 +8,7 @@ import {
   createUser,
   findUserByPhone,
   findUserByUsername,
+  setCallNote,
   setPhoneVerified,
 } from "@/lib/data/users";
 import { normalizeIndianMobile } from "@/lib/phone";
@@ -128,5 +129,20 @@ export async function setPhoneVerifiedAction(formData: FormData) {
   await setPhoneVerified(userId, verified);
   // The chip renders on the Members tab and on pair-detail pages, so
   // refresh the whole admin section rather than tracking each route.
+  revalidatePath("/admin", "layout");
+}
+
+/**
+ * Admin saves a scratch note about the confirmation call
+ * ("didn't pick up, retry Tuesday"). An empty note clears it.
+ */
+export async function saveCallNoteAction(formData: FormData) {
+  await requireAdmin();
+
+  const userId = String(formData.get("userId") ?? "");
+  const note = String(formData.get("note") ?? "");
+  if (!userId) return;
+
+  await setCallNote(userId, note);
   revalidatePath("/admin", "layout");
 }

@@ -10,7 +10,7 @@ const TABS = [
   { href: "/admin/members", label: "Members" },
 ];
 
-export default function AdminTabs() {
+export default function AdminTabs({ pendingCalls = 0 }: { pendingCalls?: number }) {
   const pathname = usePathname();
 
   return (
@@ -26,13 +26,23 @@ export default function AdminTabs() {
           <Link
             key={tab.href}
             href={tab.href}
-            className={`whitespace-nowrap border-b-2 px-4 py-2.5 text-sm font-medium transition ${
+            className={`flex items-center gap-1.5 whitespace-nowrap border-b-2 px-4 py-2.5 text-sm font-medium transition ${
               active
                 ? "border-pink-500 text-pink-600 dark:border-pink-400 dark:text-pink-300"
                 : "border-transparent text-zinc-500 hover:text-pink-600 dark:text-zinc-400 dark:hover:text-pink-300"
             }`}
           >
             {tab.label}
+            {tab.href === "/admin/members" && pendingCalls > 0 && (
+              <span
+                title={`${pendingCalls} confirmation call${
+                  pendingCalls === 1 ? "" : "s"
+                } waiting`}
+                className="rounded-full bg-amber-100 px-1.5 py-0.5 text-[10px] font-bold text-amber-700 dark:bg-amber-950/50 dark:text-amber-300"
+              >
+                {pendingCalls}
+              </span>
+            )}
           </Link>
         );
       })}

@@ -236,13 +236,24 @@
  Every account appears here, the admin included, each with its unique ID.
  Role is colour-coded: pink = member, amber = admin.
 
- PHONE is the confirmation-call queue. Numbers are visible ONLY here - no
- member-facing page ever shows them. Under each number sits a status chip
- that is also a button:
+ PHONE is the confirmation-call queue. Numbers are visible ONLY here and on
+ pair-detail pages - no member-facing page ever shows them. Under each
+ number sits a status chip that is also a button:
    [Call pending]  amber - registration promises a confirmation call within
                    48 hours; click it once the call is done
-   [Verified]      green - clicking again reverts to pending (misclicks)
+   [Verified]      green - clicking again reverts to pending (misclicks);
+                   "Verified on <date>" is recorded and shown underneath
+ Below the chip is a CALL NOTE box - a private scratch note per member
+ ("didn't pick up, retry Tuesday"). Save an empty note to clear it.
  Accounts that pre-date the phone field (the seed members) show "-".
+
+ THE CALL QUEUE: two filter chips sit above the table -
+   [All accounts]        everything, newest first (the default)
+   [Call pending (N)]    only unverified numbers, OLDEST FIRST, so calls
+                         happen in registration order and nobody slips
+                         past the 48-hour promise
+ The same pending count appears as an amber badge on the Members tab
+ itself, visible from every admin screen.
 
  WHY THIS SAYS 10 BUT OVERVIEW SAYS 9: the Overview card counts members only
  (people looking for a match). This tab lists every account including the
@@ -314,7 +325,8 @@
                             interests.ts  getAllInterests()
  STEP 5  profiles table  -> profiles.ts   getProfiles()
  STEP 6  members table   -> users.ts      getAllUsers()
-         verify a phone  -> users.ts      setPhoneVerified()
+         verify a phone  -> users.ts      setPhoneVerified()  (stamps date)
+         call note       -> users.ts      setCallNote()
  STEP 7  register member -> users.ts      createUser()
                             profiles.ts   createProfileForUser() + updateProfile()
 

@@ -18,6 +18,12 @@ export type AppUser = {
   // Set by the admin after the confirmation call (or immediately for
   // walk-ins, where the number is taken in person).
   phoneVerified?: boolean;
+  // When the admin marked the number verified — the paper trail for the
+  // 48-hour promise. Cleared if verification is reverted.
+  phoneVerifiedAt?: string;
+  // Admin's scratch note about the confirmation call, e.g.
+  // "didn't pick up, retry Tuesday". Never shown to members.
+  callNote?: string;
   createdAt: string;
 };
 
@@ -140,6 +146,8 @@ export async function createUser(input: {
     role: "member",
     phone: input.phone,
     phoneVerified: input.phone ? input.phoneVerified ?? false : undefined,
+    phoneVerifiedAt:
+      input.phone && input.phoneVerified ? new Date().toISOString() : undefined,
     createdAt: new Date().toISOString(),
   };
   users.push(user);
@@ -155,6 +163,20 @@ export async function setPhoneVerified(
   const user = users.find((u) => u.id === userId);
   if (!user || !user.phone) return undefined;
   user.phoneVerified = verified;
+  user.phoneVerifiedAt = verified ? new Date().toISOString() : undefined;
+  writeStore("users", users);
+  return user;
+}
+
+export async function setCallNote(
+  userId: string,
+  note: string
+): Promise<AppUser | undefined> {
+  const users = loadUsers();
+  const user = users.find((u) => u.id === userId);
+  if (!user) return undefined;
+  const trimmed = note.trim();
+  user.callNote = trimmed || undefined;
   writeStore("users", users);
   return user;
 }
