@@ -1,5 +1,5 @@
 import "server-only";
-import { readStore, writeStore } from "@/lib/data/store";
+import { getDb } from "@/lib/data/db";
 
 export type Interest = {
   id: string;
@@ -8,99 +8,67 @@ export type Interest = {
   createdAt: string;
 };
 
-// Seeded activity so both the member and admin views demo meaningfully.
-// Includes two mutual pairs (Sarbjeet<->Simran, Vikram<->Anjali) plus
-// several one-directional interests.
-const SEED_INTERESTS: Interest[] = [
-  {
-    id: "seed-1",
-    fromUserId: "u-sarbjeet",
-    toUserId: "u-simran",
-    createdAt: new Date(2026, 0, 7, 11, 20).toISOString(),
-  },
-  {
-    id: "seed-2",
-    fromUserId: "u-simran",
-    toUserId: "u-sarbjeet",
-    createdAt: new Date(2026, 0, 9, 16, 45).toISOString(),
-  },
-  {
-    id: "seed-3",
-    fromUserId: "u-priya",
-    toUserId: "u-aman",
-    createdAt: new Date(2026, 0, 11, 18, 40).toISOString(),
-  },
-  {
-    id: "seed-4",
-    fromUserId: "u-gurpreet",
-    toUserId: "u-priya",
-    createdAt: new Date(2026, 0, 13, 10, 5).toISOString(),
-  },
-  {
-    id: "seed-5",
-    fromUserId: "u-vikram",
-    toUserId: "u-anjali",
-    createdAt: new Date(2026, 0, 16, 9, 5).toISOString(),
-  },
-  {
-    id: "seed-6",
-    fromUserId: "u-anjali",
-    toUserId: "u-vikram",
-    createdAt: new Date(2026, 0, 17, 20, 55).toISOString(),
-  },
-  {
-    id: "seed-7",
-    fromUserId: "u-neha",
-    toUserId: "u-rahul",
-    createdAt: new Date(2026, 0, 19, 14, 30).toISOString(),
-  },
-  {
-    id: "seed-8",
-    fromUserId: "u-rahul",
-    toUserId: "u-simran",
-    createdAt: new Date(2026, 0, 20, 12, 15).toISOString(),
-  },
-];
+type InterestRow = {
+  id: string;
+  from_user_id: string;
+  to_user_id: string;
+  created_at: string;
+};
 
-function loadInterests(): Interest[] {
-  return readStore("interests", SEED_INTERESTS);
+function rowToInterest(row: InterestRow): Interest {
+  return {
+    id: row.id,
+    fromUserId: row.from_user_id,
+    toUserId: row.to_user_id,
+    createdAt: row.created_at,
+  };
 }
 
 export async function hasSentInterest(
   fromUserId: string,
   toUserId: string
 ): Promise<boolean> {
-  return loadInterests().some(
-    (i) => i.fromUserId === fromUserId && i.toUserId === toUserId
-  );
+  const row = getDb()
+    .prepare("SELECT 1 FROM interests WHERE from_user_id = ? AND to_user_id = ?")
+    .get(fromUserId, toUserId);
+  return row !== undefined;
 }
 
 /** User ids this member has expressed interest in. */
 export async function getSentInterestUserIds(userId: string): Promise<string[]> {
-  return loadInterests()
-    .filter((i) => i.fromUserId === userId)
-    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-    .map((i) => i.toUserId);
+  const rows = getDb()
+    .prepare(
+      "SELECT to_user_id FROM interests WHERE from_user_id = ? ORDER BY created_at DESC"
+    )
+    .all(userId) as { to_user_id: string }[];
+  return rows.map((r) => r.to_user_id);
 }
 
 /** User ids who have expressed interest in this member. */
 export async function getReceivedInterestUserIds(userId: string): Promise<string[]> {
-  return loadInterests()
-    .filter((i) => i.toUserId === userId)
-    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-    .map((i) => i.fromUserId);
+  const rows = getDb()
+    .prepare(
+      "SELECT from_user_id FROM interests WHERE to_user_id = ? ORDER BY created_at DESC"
+    )
+    .all(userId) as { from_user_id: string }[];
+  return rows.map((r) => r.from_user_id);
 }
 
 /** User ids where interest goes both ways — a real match. */
 export async function getMutualMatchUserIds(userId: string): Promise<string[]> {
-  const interests = loadInterests();
-  const sentTo = new Set(
-    interests.filter((i) => i.fromUserId === userId).map((i) => i.toUserId)
-  );
-  return interests
-    .filter((i) => i.toUserId === userId && sentTo.has(i.fromUserId))
-    .sort((a, b) => b.createdAt.localeCompare(a.createdAt))
-    .map((i) => i.fromUserId);
+  // Received interests whose sender this member has also sent one to —
+  // a self-join on the pair, newest reciprocation first.
+  const rows = getDb()
+    .prepare(
+      `SELECT r.from_user_id
+       FROM interests r
+       JOIN interests s ON s.from_user_id = r.to_user_id
+                       AND s.to_user_id = r.from_user_id
+       WHERE r.to_user_id = ?
+       ORDER BY r.created_at DESC`
+    )
+    .all(userId) as { from_user_id: string }[];
+  return rows.map((r) => r.from_user_id);
 }
 
 export async function toggleInterest(
@@ -110,29 +78,23 @@ export async function toggleInterest(
   // Guard at the data layer too: nobody can express interest in themselves.
   if (fromUserId === toUserId) return false;
 
-  const interests = loadInterests();
-  const existingIndex = interests.findIndex(
-    (i) => i.fromUserId === fromUserId && i.toUserId === toUserId
-  );
+  const db = getDb();
+  const removed = db
+    .prepare("DELETE FROM interests WHERE from_user_id = ? AND to_user_id = ?")
+    .run(fromUserId, toUserId);
+  if (removed.changes > 0) return false;
 
-  if (existingIndex >= 0) {
-    interests.splice(existingIndex, 1);
-    writeStore("interests", interests);
-    return false;
-  }
-
-  interests.push({
-    id: crypto.randomUUID(),
-    fromUserId,
-    toUserId,
-    createdAt: new Date().toISOString(),
-  });
-  writeStore("interests", interests);
+  db.prepare(
+    "INSERT INTO interests (id, from_user_id, to_user_id, created_at) VALUES (?, ?, ?, ?)"
+  ).run(crypto.randomUUID(), fromUserId, toUserId, new Date().toISOString());
   return true;
 }
 
 export async function getAllInterests(): Promise<Interest[]> {
-  return [...loadInterests()].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  const rows = getDb()
+    .prepare("SELECT * FROM interests ORDER BY created_at DESC")
+    .all() as InterestRow[];
+  return rows.map(rowToInterest);
 }
 
 export type MutualPair = {

@@ -17,7 +17,8 @@
 /.next/
 /out/
 
-# local file-backed demo "database" (seeded fresh if absent)
+# SQLite database (seeded fresh if absent; holds real member data)
+/data/
 /.data/
 
 # production

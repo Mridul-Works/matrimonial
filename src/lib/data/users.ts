@@ -1,6 +1,6 @@
 import "server-only";
 import bcrypt from "bcryptjs";
-import { readStore, writeStore } from "@/lib/data/store";
+import { getDb } from "@/lib/data/db";
 
 export type UserRole = "admin" | "member";
 
@@ -29,105 +29,55 @@ export type AppUser = {
 
 // Every member account owns exactly one profile, keyed by the same id
 // (see lib/data/profiles.ts). Admins have no profile — they oversee only.
-// Seed data is persisted to a JSON file on first read; swap this module for
-// a real database before shipping beyond a demo.
-const SEED_USERS: AppUser[] = [
-  {
-    id: "admin",
-    name: "Admin",
-    username: "admin",
-    passwordHash: bcrypt.hashSync("admin", 10),
-    role: "admin",
-    createdAt: new Date(2026, 0, 1).toISOString(),
-  },
-  {
-    id: "u-sarbjeet",
-    name: "Sarbjeet Singh",
-    username: "sarbjeet",
-    passwordHash: bcrypt.hashSync("sarbjeet123", 10),
-    role: "member",
-    createdAt: new Date(2026, 0, 1).toISOString(),
-  },
-  {
-    id: "u-simran",
-    name: "Simran Kaur",
-    username: "simran",
-    passwordHash: bcrypt.hashSync("simran123", 10),
-    role: "member",
-    createdAt: new Date(2026, 0, 2).toISOString(),
-  },
-  {
-    id: "u-aman",
-    name: "Aman Sharma",
-    username: "aman",
-    passwordHash: bcrypt.hashSync("aman123", 10),
-    role: "member",
-    createdAt: new Date(2026, 0, 3).toISOString(),
-  },
-  {
-    id: "u-priya",
-    name: "Priya Verma",
-    username: "priya",
-    passwordHash: bcrypt.hashSync("priya123", 10),
-    role: "member",
-    createdAt: new Date(2026, 0, 5).toISOString(),
-  },
-  {
-    id: "u-gurpreet",
-    name: "Gurpreet Singh",
-    username: "gurpreet",
-    passwordHash: bcrypt.hashSync("gurpreet123", 10),
-    role: "member",
-    createdAt: new Date(2026, 0, 8).toISOString(),
-  },
-  {
-    id: "u-neha",
-    name: "Neha Kumari",
-    username: "neha",
-    passwordHash: bcrypt.hashSync("neha123", 10),
-    role: "member",
-    createdAt: new Date(2026, 0, 10).toISOString(),
-  },
-  {
-    id: "u-rahul",
-    name: "Rahul Nagpal",
-    username: "rahul",
-    passwordHash: bcrypt.hashSync("rahul123", 10),
-    role: "member",
-    createdAt: new Date(2026, 0, 12).toISOString(),
-  },
-  {
-    id: "u-anjali",
-    name: "Anjali Sain",
-    username: "anjali",
-    passwordHash: bcrypt.hashSync("anjali123", 10),
-    role: "member",
-    createdAt: new Date(2026, 0, 15).toISOString(),
-  },
-  {
-    id: "u-vikram",
-    name: "Vikram Sain",
-    username: "vikram",
-    passwordHash: bcrypt.hashSync("vikram123", 10),
-    role: "member",
-    createdAt: new Date(2026, 0, 18).toISOString(),
-  },
-];
 
-function loadUsers(): AppUser[] {
-  return readStore("users", SEED_USERS);
+type UserRow = {
+  id: string;
+  name: string;
+  username: string;
+  password_hash: string;
+  role: string;
+  phone: string | null;
+  phone_verified: number | null;
+  phone_verified_at: string | null;
+  call_note: string | null;
+  created_at: string;
+};
+
+function rowToUser(row: UserRow): AppUser {
+  return {
+    id: row.id,
+    name: row.name,
+    username: row.username,
+    passwordHash: row.password_hash,
+    role: row.role as UserRole,
+    phone: row.phone ?? undefined,
+    phoneVerified:
+      row.phone_verified === null ? undefined : row.phone_verified === 1,
+    phoneVerifiedAt: row.phone_verified_at ?? undefined,
+    callNote: row.call_note ?? undefined,
+    createdAt: row.created_at,
+  };
 }
 
 export async function findUserByUsername(username: string): Promise<AppUser | undefined> {
-  return loadUsers().find((user) => user.username.toLowerCase() === username.toLowerCase());
+  const row = getDb()
+    .prepare("SELECT * FROM users WHERE LOWER(username) = LOWER(?)")
+    .get(username) as UserRow | undefined;
+  return row ? rowToUser(row) : undefined;
 }
 
 export async function findUserById(id: string): Promise<AppUser | undefined> {
-  return loadUsers().find((user) => user.id === id);
+  const row = getDb().prepare("SELECT * FROM users WHERE id = ?").get(id) as
+    | UserRow
+    | undefined;
+  return row ? rowToUser(row) : undefined;
 }
 
 export async function findUserByPhone(phone: string): Promise<AppUser | undefined> {
-  return loadUsers().find((user) => user.phone === phone);
+  const row = getDb().prepare("SELECT * FROM users WHERE phone = ?").get(phone) as
+    | UserRow
+    | undefined;
+  return row ? rowToUser(row) : undefined;
 }
 
 export async function createUser(input: {
@@ -137,7 +87,6 @@ export async function createUser(input: {
   phone?: string;
   phoneVerified?: boolean;
 }): Promise<AppUser> {
-  const users = loadUsers();
   const user: AppUser = {
     id: `u-${crypto.randomUUID().slice(0, 8)}`,
     name: input.name,
@@ -150,8 +99,26 @@ export async function createUser(input: {
       input.phone && input.phoneVerified ? new Date().toISOString() : undefined,
     createdAt: new Date().toISOString(),
   };
-  users.push(user);
-  writeStore("users", users);
+
+  getDb()
+    .prepare(
+      `INSERT INTO users (id, name, username, password_hash, role, phone,
+                          phone_verified, phone_verified_at, call_note, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    )
+    .run(
+      user.id,
+      user.name,
+      user.username,
+      user.passwordHash,
+      user.role,
+      user.phone ?? null,
+      user.phone === undefined ? null : user.phoneVerified ? 1 : 0,
+      user.phoneVerifiedAt ?? null,
+      null,
+      user.createdAt
+    );
+
   return user;
 }
 
@@ -159,26 +126,26 @@ export async function setPhoneVerified(
   userId: string,
   verified: boolean
 ): Promise<AppUser | undefined> {
-  const users = loadUsers();
-  const user = users.find((u) => u.id === userId);
-  if (!user || !user.phone) return undefined;
-  user.phoneVerified = verified;
-  user.phoneVerifiedAt = verified ? new Date().toISOString() : undefined;
-  writeStore("users", users);
-  return user;
+  const result = getDb()
+    .prepare(
+      `UPDATE users SET phone_verified = ?, phone_verified_at = ?
+       WHERE id = ? AND phone IS NOT NULL`
+    )
+    .run(verified ? 1 : 0, verified ? new Date().toISOString() : null, userId);
+  if (result.changes === 0) return undefined;
+  return findUserById(userId);
 }
 
 export async function setCallNote(
   userId: string,
   note: string
 ): Promise<AppUser | undefined> {
-  const users = loadUsers();
-  const user = users.find((u) => u.id === userId);
-  if (!user) return undefined;
   const trimmed = note.trim();
-  user.callNote = trimmed || undefined;
-  writeStore("users", users);
-  return user;
+  const result = getDb()
+    .prepare("UPDATE users SET call_note = ? WHERE id = ?")
+    .run(trimmed || null, userId);
+  if (result.changes === 0) return undefined;
+  return findUserById(userId);
 }
 
 export async function verifyPassword(user: AppUser, password: string): Promise<boolean> {
@@ -186,5 +153,8 @@ export async function verifyPassword(user: AppUser, password: string): Promise<b
 }
 
 export async function getAllUsers(): Promise<AppUser[]> {
-  return [...loadUsers()].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  const rows = getDb()
+    .prepare("SELECT * FROM users ORDER BY created_at DESC")
+    .all() as UserRow[];
+  return rows.map(rowToUser);
 }

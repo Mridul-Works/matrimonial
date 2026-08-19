@@ -6,10 +6,11 @@ with the blessings of Baba Sain Bhagat Ji.
 Members browse curated biodata profiles and express interest; an admin manages
 the catalogue and can see exactly who tried to match with whom.
 
-> **Status: frontend complete.** Everything works end to end, but data is stored
-> in JSON files rather than a real database. The data layer is deliberately
-> isolated so a backend can be dropped in without touching any page or
-> component — see [Swapping in a real backend](#swapping-in-a-real-backend).
+> **Status: full stack.** Everything works end to end on a real SQLite
+> database (Node's built-in `node:sqlite` — zero extra dependencies), stored
+> durably at `data/matrimonial.db`. The data layer is still deliberately
+> isolated, so moving to a hosted database later touches nothing above it —
+> see [Moving to a hosted database](#moving-to-a-hosted-database).
 
 ---
 
@@ -122,8 +123,9 @@ src/
 │   ├── dal.ts                verifySession · getUser · requireAdmin
 │   ├── actions/              "use server" mutations
 │   └── data/                 ← the only place that touches storage
-│       ├── store.ts          JSON read/write helpers
-│       ├── users.ts · profiles.ts · interests.ts
+│       ├── db.ts             SQLite connection, schema, first-run seeding
+│       ├── seed-data.ts      Demo users/profiles/interests
+│       ├── users.ts · profiles.ts · interests.ts   SQL queries
 └── components/               Header, footer, cards, filters, admin tables
 ```
 
@@ -156,22 +158,25 @@ menu (no client JS), and dark mode throughout.
 
 ---
 
-## Swapping in a real backend
+## The database
 
-Every read and write in the app goes through four files in `src/lib/data/`.
-Nothing above that layer — no page, no component, no action — knows that storage
-is JSON files.
+Storage is SQLite through Node's built-in `node:sqlite` module — no ORM, no
+native npm packages. The database file lives at `data/matrimonial.db`
+(gitignored) in WAL mode, with three tables — `users`, `profiles`,
+`interests` — matching the exported types 1:1.
 
-To move to a real database (Postgres via Prisma, Supabase, Vercel Postgres, …):
+On the very first run, `db.ts` seeds the demo data — or, if the retired JSON
+store's files still exist in the OS temp dir, migrates those instead so
+accounts registered before the switch carry over. Delete `data/` to reset to
+a fresh seed.
 
-1. Keep the exported function signatures in `users.ts`, `profiles.ts`, and
-   `interests.ts` exactly as they are — they're already `async` and already
-   return plain objects.
-2. Replace each function body with a real query.
-3. Delete `store.ts`.
+## Moving to a hosted database
 
-No other file needs to change. The three tables map directly to the existing
-types: `AppUser`, `MatrimonialProfile`, and `Interest`.
+Every read and write still goes through `users.ts`, `profiles.ts`, and
+`interests.ts` in `src/lib/data/` — nothing above that layer knows SQLite is
+underneath. To move to Postgres/Turso/Supabase (needed for serverless hosts,
+see below): keep the exported function signatures, swap each SQL call's
+client, and port the schema in `db.ts`. The queries are plain SQL already.
 
 ---
 
@@ -179,10 +184,12 @@ types: `AppUser`, `MatrimonialProfile`, and `Interest`.
 
 These are deliberate trade-offs for a frontend-stage build, not bugs:
 
-- **Data isn't durable in production.** The JSON store writes to the OS temp
-  directory, because serverless platforms like Vercel ship a read-only
-  filesystem. On a deployed instance, data can reset on a cold start and isn't
-  shared between concurrent instances. A real database fixes this.
+- **SQLite needs a persistent disk.** Data is durable on any machine or VPS
+  that keeps its filesystem (the file sits in `data/`). Serverless platforms
+  like Vercel do NOT — deploying there means swapping the SQLite connection
+  for a hosted database first (see above). `node:sqlite` is marked
+  experimental in Node 22 (prints a startup warning; API is stable enough in
+  practice).
 - **No photos yet.** Profiles show a coloured initials avatar. The
   `photoUrl` field already exists on the profile type, so wiring up uploads
   later needs no schema change.

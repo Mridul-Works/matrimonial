@@ -280,7 +280,7 @@
 
 
 ===============================================================================
- BACKEND HOOKS - where a real database plugs into this flow
+ BACKEND HOOKS - the data functions each step calls (SQLite underneath)
 ===============================================================================
 
  STEP 2  register       -> users.ts     createUser()
@@ -297,7 +297,8 @@
                                         getSentInterestUserIds()
  STEP 8  edit profile   -> profiles.ts  updateProfile()
 
- All are async and return plain objects - swap the bodies for real queries
- and no page or component needs to change.
+ All are async, return plain objects, and run real SQL against SQLite
+ (data/matrimonial.db). Moving to a hosted database later means swapping
+ the SQL client inside these functions - no page or component changes.
 
 ===============================================================================

@@ -313,7 +313,7 @@
 
 
 ===============================================================================
- BACKEND HOOKS - where a real database plugs into this flow
+ BACKEND HOOKS - the data functions each screen calls (SQLite underneath)
 ===============================================================================
 
  STEP 3  overview        -> getAllUsers() + getProfiles() + getAllInterests()
@@ -337,10 +337,10 @@
  the last one. Mutual-match cards are never paginated - that list is the
  call-first queue and stays fully visible.
 
- Admin screens join users + interests in memory. With a real database those
- become one query per screen; the page components stay as they are.
- Pagination slices in memory too - with a real database it becomes
- LIMIT/OFFSET in the same queries; the pager component stays as it is.
+ Storage is SQLite (data/matrimonial.db, via Node's built-in node:sqlite).
+ Admin screens still join users + interests in memory after simple SELECTs;
+ pagination slices in memory too. At real scale both can move into the SQL
+ (JOINs, LIMIT/OFFSET) without touching any page component.
  findMutualPairs() is a pure function - in SQL it is a self-join on interests.
 
  SUGGESTED SCHEMA WHEN MIGRATING

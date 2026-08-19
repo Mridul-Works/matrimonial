@@ -1,5 +1,5 @@
 import "server-only";
-import { readStore, writeStore } from "@/lib/data/store";
+import { getDb } from "@/lib/data/db";
 import { getAllUsers } from "@/lib/data/users";
 
 export type MatrimonialProfile = {
@@ -22,183 +22,45 @@ export type MatrimonialProfile = {
   createdAt: string;
 };
 
-const SEED_PROFILES: MatrimonialProfile[] = [
-  {
-    id: "u-sarbjeet",
-    codeNo: "42/26",
-    name: "Sarbjeet Singh",
-    gender: "male",
-    dob: "1993-11-04",
-    heightLabel: "5'11\" (180 cm)",
-    city: "Jalandhar",
-    education: ["Senior Secondary (+2)", "ITI – Electrician"],
-    profession: "Electrician",
-    workExperience:
-      "Worked as an Electrician in Dubai. Currently residing in India.",
-    family: [
-      { label: "Brother", value: "1 (Married)" },
-      { label: "Sister", value: "1 (Married)" },
-    ],
-    partnerPreference:
-      "Looking for a simple, caring, and family-oriented girl who values family traditions and relationships.",
-    createdAt: new Date(2026, 0, 1).toISOString(),
-  },
-  {
-    id: "u-simran",
-    codeNo: "17/26",
-    name: "Simran Kaur",
-    gender: "female",
-    dob: "1996-03-12",
-    heightLabel: "5'4\" (163 cm)",
-    city: "Ludhiana",
-    education: ["Bachelor of Commerce (B.Com)", "Diploma in Fashion Designing"],
-    profession: "Boutique Owner",
-    workExperience: "Runs a small boutique in Ludhiana for the past 3 years.",
-    family: [
-      { label: "Brother", value: "1 (Unmarried)" },
-      { label: "Sister", value: "0" },
-    ],
-    partnerPreference:
-      "Looking for a well-settled, respectful groom from a good family background who supports her working after marriage.",
-    createdAt: new Date(2026, 0, 2).toISOString(),
-  },
-  {
-    id: "u-aman",
-    codeNo: "08/26",
-    name: "Aman Sharma",
-    gender: "male",
-    dob: "1991-07-22",
-    heightLabel: "5'9\" (175 cm)",
-    city: "Chandigarh",
-    education: ["B.Tech (Computer Science)"],
-    profession: "Software Engineer",
-    workExperience: "Working with an IT company in Chandigarh for 4 years.",
-    family: [
-      { label: "Brother", value: "0" },
-      { label: "Sister", value: "2 (Both Married)" },
-    ],
-    partnerPreference:
-      "Seeking an educated, homely girl who is understanding and supportive, open to settling in Chandigarh.",
-    createdAt: new Date(2026, 0, 3).toISOString(),
-  },
-  {
-    id: "u-priya",
-    codeNo: "23/26",
-    name: "Priya Verma",
-    gender: "female",
-    dob: "1998-09-05",
-    heightLabel: "5'3\" (160 cm)",
-    city: "Amritsar",
-    education: ["MBBS"],
-    profession: "Doctor",
-    workExperience: "Junior resident at a government hospital in Amritsar.",
-    family: [
-      { label: "Brother", value: "1 (Unmarried)" },
-      { label: "Sister", value: "1 (Married)" },
-    ],
-    partnerPreference:
-      "Prefers an educated, open-minded partner who respects her medical career and on-call schedule.",
-    createdAt: new Date(2026, 0, 5).toISOString(),
-  },
-  {
-    id: "u-gurpreet",
-    codeNo: "31/26",
-    name: "Gurpreet Singh",
-    gender: "male",
-    dob: "1995-01-18",
-    heightLabel: "6'0\" (183 cm)",
-    city: "Patiala",
-    education: ["B.A.", "Diploma in Hotel Management"],
-    profession: "Restaurant Manager",
-    workExperience: "Manages a family-owned restaurant in Patiala.",
-    family: [
-      { label: "Brother", value: "1 (Married)" },
-      { label: "Sister", value: "0" },
-    ],
-    partnerPreference:
-      "Looking for a cheerful, family-oriented girl; someone who enjoys food and hospitality is a bonus.",
-    createdAt: new Date(2026, 0, 8).toISOString(),
-  },
-  {
-    id: "u-neha",
-    codeNo: "12/26",
-    name: "Neha Kumari",
-    gender: "female",
-    dob: "1994-12-30",
-    heightLabel: "5'5\" (165 cm)",
-    city: "Delhi",
-    education: ["B.Ed", "M.A. (English)"],
-    profession: "School Teacher",
-    workExperience: "Teaches English at a private school in Delhi for 6 years.",
-    family: [
-      { label: "Brother", value: "2 (Both Married)" },
-      { label: "Sister", value: "0" },
-    ],
-    partnerPreference:
-      "Seeking a kind, stable partner who values education and a quiet family life.",
-    createdAt: new Date(2026, 0, 10).toISOString(),
-  },
-  {
-    id: "u-rahul",
-    codeNo: "56/26",
-    name: "Rahul Nagpal",
-    gender: "male",
-    dob: "1997-06-14",
-    heightLabel: "5'8\" (173 cm)",
-    city: "Gurugram",
-    education: ["B.Com", "CA (Inter)"],
-    profession: "Accountant",
-    workExperience: "Accounts executive at a logistics firm in Gurugram.",
-    family: [
-      { label: "Brother", value: "0" },
-      { label: "Sister", value: "1 (Unmarried)" },
-    ],
-    partnerPreference:
-      "Looking for a practical, warm-hearted girl; working or homely both welcome.",
-    createdAt: new Date(2026, 0, 12).toISOString(),
-  },
-  {
-    id: "u-anjali",
-    codeNo: "61/26",
-    name: "Anjali Sain",
-    gender: "female",
-    dob: "1999-04-21",
-    heightLabel: "5'2\" (158 cm)",
-    city: "Jaipur",
-    education: ["B.Sc (Nursing)"],
-    profession: "Staff Nurse",
-    workExperience: "Staff nurse at a private hospital in Jaipur.",
-    family: [
-      { label: "Brother", value: "1 (Unmarried)" },
-      { label: "Sister", value: "2 (One Married)" },
-    ],
-    partnerPreference:
-      "Wants a caring, respectful partner from a god-fearing family; city or town both fine.",
-    createdAt: new Date(2026, 0, 15).toISOString(),
-  },
-  {
-    id: "u-vikram",
-    codeNo: "77/26",
-    name: "Vikram Sain",
-    gender: "male",
-    dob: "1989-10-02",
-    heightLabel: "5'10\" (178 cm)",
-    city: "Ambala",
-    education: ["Diploma (Mechanical)"],
-    profession: "Workshop Owner",
-    workExperience: "Runs his own two-wheeler workshop in Ambala for 8 years.",
-    family: [
-      { label: "Brother", value: "1 (Married)" },
-      { label: "Sister", value: "1 (Married)" },
-    ],
-    partnerPreference:
-      "Simple living, honest girl who values family; caste no bar within community.",
-    createdAt: new Date(2026, 0, 18).toISOString(),
-  },
-];
+type ProfileRow = {
+  id: string;
+  code_no: string;
+  name: string;
+  gender: string;
+  dob: string;
+  height_label: string;
+  city: string;
+  education: string;
+  profession: string;
+  work_experience: string;
+  family: string;
+  partner_preference: string;
+  photo_url: string | null;
+  created_at: string;
+};
+
+function rowToProfile(row: ProfileRow): MatrimonialProfile {
+  return {
+    id: row.id,
+    codeNo: row.code_no,
+    name: row.name,
+    gender: row.gender as "male" | "female",
+    dob: row.dob,
+    heightLabel: row.height_label,
+    city: row.city,
+    education: JSON.parse(row.education) as string[],
+    profession: row.profession,
+    workExperience: row.work_experience,
+    family: JSON.parse(row.family) as { label: string; value: string }[],
+    partnerPreference: row.partner_preference,
+    photoUrl: row.photo_url ?? undefined,
+    createdAt: row.created_at,
+  };
+}
 
 function loadProfiles(): MatrimonialProfile[] {
-  return readStore("profiles", SEED_PROFILES);
+  const rows = getDb().prepare("SELECT * FROM profiles").all() as ProfileRow[];
+  return rows.map(rowToProfile);
 }
 
 export function calculateAge(dob: string): number {
@@ -233,6 +95,9 @@ export type ProfileFilters = {
   excludeUserId?: string;
 };
 
+// Filtering happens in memory over the full table — age is derived from
+// dob and search spans JSON columns, so SQL buys little at this scale.
+// If the community outgrows this, precompute age and use SQL LIKE here.
 export async function getProfiles(filters?: ProfileFilters): Promise<MatrimonialProfile[]> {
   const profiles = loadProfiles();
   if (!filters) return profiles;
@@ -290,22 +155,30 @@ export async function getProfiles(filters?: ProfileFilters): Promise<Matrimonial
 export async function getProfileById(
   id: string
 ): Promise<MatrimonialProfile | undefined> {
-  return loadProfiles().find((profile) => profile.id === id);
+  const row = getDb().prepare("SELECT * FROM profiles WHERE id = ?").get(id) as
+    | ProfileRow
+    | undefined;
+  return row ? rowToProfile(row) : undefined;
 }
 
 export const getProfileByUserId = getProfileById;
 
 export async function getProfilesByIds(ids: string[]): Promise<MatrimonialProfile[]> {
-  const profiles = loadProfiles();
-  return ids
-    .map((id) => profiles.find((p) => p.id === id))
-    .filter((p): p is MatrimonialProfile => Boolean(p));
+  const results: MatrimonialProfile[] = [];
+  for (const id of ids) {
+    const profile = await getProfileById(id);
+    if (profile) results.push(profile);
+  }
+  return results;
 }
 
-function nextCodeNo(profiles: MatrimonialProfile[]): string {
+function nextCodeNo(): string {
   const year = new Date().getFullYear() % 100;
-  const highest = profiles.reduce((max, p) => {
-    const n = Number(p.codeNo.split("/")[0]);
+  const rows = getDb().prepare("SELECT code_no FROM profiles").all() as {
+    code_no: string;
+  }[];
+  const highest = rows.reduce((max, r) => {
+    const n = Number(r.code_no.split("/")[0]);
     return Number.isFinite(n) && n > max ? n : max;
   }, 0);
   return `${String(highest + 1).padStart(2, "0")}/${year}`;
@@ -321,10 +194,9 @@ export async function createProfileForUser(input: {
   city: string;
   profession: string;
 }): Promise<MatrimonialProfile> {
-  const profiles = loadProfiles();
   const profile: MatrimonialProfile = {
     id: input.userId,
-    codeNo: nextCodeNo(profiles),
+    codeNo: nextCodeNo(),
     name: input.name,
     gender: input.gender,
     dob: input.dob,
@@ -340,8 +212,31 @@ export async function createProfileForUser(input: {
     partnerPreference: "Not specified",
     createdAt: new Date().toISOString(),
   };
-  profiles.push(profile);
-  writeStore("profiles", profiles);
+
+  getDb()
+    .prepare(
+      `INSERT INTO profiles (id, code_no, name, gender, dob, height_label, city,
+                             education, profession, work_experience, family,
+                             partner_preference, photo_url, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    )
+    .run(
+      profile.id,
+      profile.codeNo,
+      profile.name,
+      profile.gender,
+      profile.dob,
+      profile.heightLabel,
+      profile.city,
+      JSON.stringify(profile.education),
+      profile.profession,
+      profile.workExperience,
+      JSON.stringify(profile.family),
+      profile.partnerPreference,
+      null,
+      profile.createdAt
+    );
+
   return profile;
 }
 
@@ -349,11 +244,32 @@ export async function updateProfile(
   userId: string,
   patch: Partial<Omit<MatrimonialProfile, "id" | "codeNo" | "createdAt">>
 ): Promise<MatrimonialProfile | undefined> {
-  const profiles = loadProfiles();
-  const index = profiles.findIndex((p) => p.id === userId);
-  if (index < 0) return undefined;
+  const existing = await getProfileById(userId);
+  if (!existing) return undefined;
 
-  profiles[index] = { ...profiles[index], ...patch };
-  writeStore("profiles", profiles);
-  return profiles[index];
+  const updated: MatrimonialProfile = { ...existing, ...patch };
+  getDb()
+    .prepare(
+      `UPDATE profiles SET name = ?, gender = ?, dob = ?, height_label = ?,
+                           city = ?, education = ?, profession = ?,
+                           work_experience = ?, family = ?,
+                           partner_preference = ?, photo_url = ?
+       WHERE id = ?`
+    )
+    .run(
+      updated.name,
+      updated.gender,
+      updated.dob,
+      updated.heightLabel,
+      updated.city,
+      JSON.stringify(updated.education),
+      updated.profession,
+      updated.workExperience,
+      JSON.stringify(updated.family),
+      updated.partnerPreference,
+      updated.photoUrl ?? null,
+      userId
+    );
+
+  return updated;
 }
