@@ -10,6 +10,14 @@ export type AppUser = {
   username: string;
   passwordHash: string;
   role: UserRole;
+  // Contact number in +91XXXXXXXXXX form. Deliberately kept on the user
+  // record, NOT the profile — profiles are served to every member, so a
+  // number stored here can only ever reach admin-facing pages. Optional
+  // because the admin account and pre-phone seed data have none.
+  phone?: string;
+  // Set by the admin after the confirmation call (or immediately for
+  // walk-ins, where the number is taken in person).
+  phoneVerified?: boolean;
   createdAt: string;
 };
 
@@ -112,10 +120,16 @@ export async function findUserById(id: string): Promise<AppUser | undefined> {
   return loadUsers().find((user) => user.id === id);
 }
 
+export async function findUserByPhone(phone: string): Promise<AppUser | undefined> {
+  return loadUsers().find((user) => user.phone === phone);
+}
+
 export async function createUser(input: {
   name: string;
   username: string;
   password: string;
+  phone?: string;
+  phoneVerified?: boolean;
 }): Promise<AppUser> {
   const users = loadUsers();
   const user: AppUser = {
@@ -124,9 +138,23 @@ export async function createUser(input: {
     username: input.username,
     passwordHash: bcrypt.hashSync(input.password, 10),
     role: "member",
+    phone: input.phone,
+    phoneVerified: input.phone ? input.phoneVerified ?? false : undefined,
     createdAt: new Date().toISOString(),
   };
   users.push(user);
+  writeStore("users", users);
+  return user;
+}
+
+export async function setPhoneVerified(
+  userId: string,
+  verified: boolean
+): Promise<AppUser | undefined> {
+  const users = loadUsers();
+  const user = users.find((u) => u.id === userId);
+  if (!user || !user.phone) return undefined;
+  user.phoneVerified = verified;
   writeStore("users", users);
   return user;
 }

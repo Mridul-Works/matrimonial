@@ -4,6 +4,7 @@ import { getAllInterests } from "@/lib/data/interests";
 import { formatDob } from "@/lib/data/profiles";
 import { AdminTable, IdBadge } from "@/components/admin/AdminTable";
 import AdminSearch from "@/components/admin/AdminSearch";
+import PhoneCell from "@/components/admin/PhoneCell";
 
 export default async function AdminMembersPage({
   searchParams,
@@ -25,7 +26,10 @@ export default async function AdminMembersPage({
   const needle = q?.trim().toLowerCase();
   const filtered = needle
     ? users.filter((u) =>
-        [u.id, u.name, u.username].join(" ").toLowerCase().includes(needle)
+        [u.id, u.name, u.username, u.phone ?? ""]
+          .join(" ")
+          .toLowerCase()
+          .includes(needle)
       )
     : users;
 
@@ -37,7 +41,7 @@ export default async function AdminMembersPage({
           {needle ? ` matching “${q}”` : " registered"}.
         </p>
         <AdminSearch
-          placeholder="Search by ID, name, username..."
+          placeholder="Search by ID, name, username, phone..."
           defaultValue={q}
           clearHref="/admin/members"
         />
@@ -45,11 +49,18 @@ export default async function AdminMembersPage({
 
       <div className="mt-4">
         <AdminTable
-          columns={["ID", "Name", "Username", "Role", "Sent", "Received", "Joined"]}
+          columns={["ID", "Name", "Username", "Phone", "Role", "Sent", "Received", "Joined"]}
           rows={filtered.map((u) => [
             <IdBadge key="id">{u.id}</IdBadge>,
             u.name,
             u.username,
+            u.phone ? (
+              <PhoneCell key="phone" user={u} />
+            ) : (
+              <span key="phone" className="text-xs text-zinc-400 dark:text-zinc-500">
+                —
+              </span>
+            ),
             u.role === "admin" ? (
               <span
                 key="role"

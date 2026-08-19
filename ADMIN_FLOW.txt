@@ -116,28 +116,32 @@
  A pair appears here the moment the SECOND interest lands; the timestamp is
  that moment, not the first interest. These are the families to call first.
 
+ CLICK ANY CARD to open the PAIR DETAILS page (see STEP 4b) - both members
+ side by side with their full biodata AND phone numbers.
+
  SECTION B - ALL INTEREST ACTIVITY (the full log)
  ------------------------------------------------
 
    8 interests sent in total. Newest first.
                                     [ search by either member ] [Search]
 
-   +----------------------+----------------------+----------+------------+
-   | FROM (MEMBER)        | TO (MEMBER)          | STATUS   | WHEN       |
-   +----------------------+----------------------+----------+------------+
-   | Rahul Nagpal  56/26  | Simran Kaur   17/26  | One-way  | 20 Jan ... |
-   | Neha Kumari   12/26  | Rahul Nagpal  56/26  | One-way  | 19 Jan ... |
-   | Anjali Sain   61/26  | Vikram Sain   77/26  | [Mutual] | 17 Jan ... |
-   | Vikram Sain   77/26  | Anjali Sain   61/26  | [Mutual] | 16 Jan ... |
-   | Gurpreet Singh 31/26 | Priya Verma   23/26  | One-way  | 13 Jan ... |
-   | Priya Verma   23/26  | Aman Sharma   08/26  | One-way  | 11 Jan ... |
-   | Simran Kaur   17/26  | Sarbjeet Singh 42/26 | [Mutual] | 09 Jan ... |
-   | Sarbjeet Singh 42/26 | Simran Kaur   17/26  | [Mutual] | 07 Jan ... |
-   +----------------------+----------------------+----------+------------+
+   +----------------------+----------------------+----------+---------+-----------+
+   | FROM (MEMBER)        | TO (MEMBER)          | STATUS   | WHEN    | DETAILS   |
+   +----------------------+----------------------+----------+---------+-----------+
+   | Rahul Nagpal  56/26  | Simran Kaur   17/26  | One-way  | 20 Jan  | View pair |
+   | Neha Kumari   12/26  | Rahul Nagpal  56/26  | One-way  | 19 Jan  | View pair |
+   | Anjali Sain   61/26  | Vikram Sain   77/26  | [Mutual] | 17 Jan  | View pair |
+   | Vikram Sain   77/26  | Anjali Sain   61/26  | [Mutual] | 16 Jan  | View pair |
+   | Gurpreet Singh 31/26 | Priya Verma   23/26  | One-way  | 13 Jan  | View pair |
+   | Priya Verma   23/26  | Aman Sharma   08/26  | One-way  | 11 Jan  | View pair |
+   | Simran Kaur   17/26  | Sarbjeet Singh 42/26 | [Mutual] | 09 Jan  | View pair |
+   | Sarbjeet Singh 42/26 | Simran Kaur   17/26  | [Mutual] | 07 Jan  | View pair |
+   +----------------------+----------------------+----------+---------+-----------+
 
  Both directions are listed separately, each tagged:
    [Mutual]  rose chip - the other person sent one back
    One-way   grey chip - still waiting on a reply
+ "View pair" opens the same PAIR DETAILS page as clicking a mutual card.
 
  SEARCH works from either side - type a name, username, or code number and
  you get every interest that person sent OR received.
@@ -146,6 +150,42 @@
    "The Sharma family asked who is interested in their son (08/26)."
      -> Match Activity -> search "08/26"
      -> Priya Verma sent one on 11 Jan; not reciprocated yet.
+
+
+-------------------------------------------------------------------------------
+ STEP 4b - PAIR DETAILS                            [ /admin/matches/:a/:b ]
+-------------------------------------------------------------------------------
+
+ One page, two members side by side - everything the admin needs to make
+ the call between two families. Opened by clicking a mutual-match card or
+ a "View pair" link in the interest log.
+
+   +--------------------------------------------------------------+
+   |  <- Back to match activity                                   |
+   |  Simran Kaur & Sarbjeet Singh                                |
+   |                                                              |
+   |  [ It's a mutual match - became mutual on 09 Jan, 04:45 pm ] |
+   |                                                              |
+   |  +--------------------------+  +--------------------------+  |
+   |  | Simran Kaur              |  | Sarbjeet Singh           |  |
+   |  | 17/26 @simran u-simran   |  | 42/26 @sarbjeet u-sarb.. |  |
+   |  |            Live profile->|  |            Live profile->|  |
+   |  | PHONE (ADMIN-ONLY)       |  | PHONE (ADMIN-ONLY)       |  |
+   |  | +91 98765 43210          |  | No number on record      |  |
+   |  | [Call pending]           |  |                          |  |
+   |  | Gender / DOB + age       |  | Gender / DOB + age       |  |
+   |  | Height / City            |  | Height / City            |  |
+   |  | Profession / Work exp.   |  | Profession / Work exp.   |  |
+   |  | Education / Family       |  | Education / Family       |  |
+   |  | Partner preference       |  | Partner preference       |  |
+   |  | Joined / Sent int. on    |  | Joined / Sent int. on    |  |
+   |  +--------------------------+  +--------------------------+  |
+   +--------------------------------------------------------------+
+
+ The banner adapts: rose for mutual, amber for one-way ("X expressed
+ interest in Y on ... No reply yet"), grey when there is no interest
+ either way. The phone chip is the same verify/pending button as on the
+ Members tab, so the admin can mark the confirmation call done right here.
 
 
 -------------------------------------------------------------------------------
@@ -181,20 +221,28 @@
 
  *** This is the "list of everyone, by ID" screen. ***
 
-   10 accounts registered.    [ search by ID, name, username ] [Search]
+   10 accounts registered.  [ search by ID, name, username, phone ] [Search]
 
-   +--------------+---------------+----------+----------+------+------+--------+
-   | ID           | NAME          | USERNAME | ROLE     | SENT | RECV | JOINED |
-   +--------------+---------------+----------+----------+------+------+--------+
-   | u-vikram     | Vikram Sain   | vikram   | [member] |  1   |  1   | 18 Jan |
-   | u-anjali     | Anjali Sain   | anjali   | [member] |  1   |  1   | 15 Jan |
-   | u-rahul      | Rahul Nagpal  | rahul    | [member] |  1   |  1   | 12 Jan |
-   | ...                                                                       |
-   | admin        | Admin         | admin    | [admin]  |  0   |  0   | 01 Jan |
-   +--------------+---------------+----------+----------+------+------+--------+
+   +------------+--------------+----------+----------------+----------+---+---+------+
+   | ID         | NAME         | USERNAME | PHONE          | ROLE     |SNT|RCV|JOINED|
+   +------------+--------------+----------+----------------+----------+---+---+------+
+   | u-vikram   | Vikram Sain  | vikram   | -              | [member] | 1 | 1 |18 Jan|
+   | u-new      | New Member   | newbie   | +91 98765 43210| [member] | 0 | 0 |20 Jan|
+   |            |              |          | [Call pending] |          |   |   |      |
+   | ...                                                                            |
+   | admin      | Admin        | admin    | -              | [admin]  | 0 | 0 |01 Jan|
+   +------------+--------------+----------+----------------+----------+---+---+------+
 
  Every account appears here, the admin included, each with its unique ID.
  Role is colour-coded: pink = member, amber = admin.
+
+ PHONE is the confirmation-call queue. Numbers are visible ONLY here - no
+ member-facing page ever shows them. Under each number sits a status chip
+ that is also a button:
+   [Call pending]  amber - registration promises a confirmation call within
+                   48 hours; click it once the call is done
+   [Verified]      green - clicking again reverts to pending (misclicks)
+ Accounts that pre-date the phone field (the seed members) show "-".
 
  WHY THIS SAYS 10 BUT OVERVIEW SAYS 9: the Overview card counts members only
  (people looking for a match). This tab lists every account including the
@@ -214,6 +262,8 @@
    |                                                           |
    |  Full Name *                                              |
    |  Username * (their login)  |  Temporary Password *        |
+   |  Mobile Number * (taken in person, so it is saved as      |
+   |                   already verified; admin-only)           |
    |  Gender *  | Date of Birth * | Height                     |
    |  City *    | Profession *                                 |
    |  Educational Qualification (one per line)                 |
@@ -259,8 +309,12 @@
                             + findMutualPairs(interests)
  STEP 4  match activity  -> interests.ts  getAllInterests()
                                           findMutualPairs()
+ STEP 4b pair details    -> users.ts      findUserById()  (both sides)
+                            profiles.ts   getProfileById() (both sides)
+                            interests.ts  getAllInterests()
  STEP 5  profiles table  -> profiles.ts   getProfiles()
  STEP 6  members table   -> users.ts      getAllUsers()
+         verify a phone  -> users.ts      setPhoneVerified()
  STEP 7  register member -> users.ts      createUser()
                             profiles.ts   createProfileForUser() + updateProfile()
 

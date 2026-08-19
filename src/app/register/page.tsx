@@ -24,7 +24,8 @@ export default function RegisterPage() {
         </h1>
         <p className="mt-1 text-sm text-zinc-500 dark:text-zinc-400">
           Your account and matrimonial profile are created together, so other
-          members can find you right away. You can add more details afterwards.
+          members can discover you straight away. You can add the rest of your
+          details later.
         </p>
 
         <form action={formAction} className="mt-6 space-y-4">
@@ -48,6 +49,27 @@ export default function RegisterPage() {
               type="password"
               errors={state?.errors?.password}
             />
+          </div>
+
+          <div>
+            <Field
+              label="Mobile number"
+              name="phone"
+              type="tel"
+              placeholder="e.g. 98765 43210"
+              errors={state?.errors?.phone}
+            />
+            <div className="mt-2 rounded-xl border border-amber-100 bg-amber-50/60 px-3 py-2 text-xs leading-relaxed text-amber-800 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-200">
+              <p>
+                <span className="font-semibold">We will call you to confirm this number.</span>{" "}
+                Our team verifies every new member with a short phone call, which can
+                take up to 48 hours after you register.
+              </p>
+              <p className="mt-1 text-amber-700/90 dark:text-amber-300/80">
+                Your number stays private — it is never shown to other members and is
+                visible only to our team.
+              </p>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

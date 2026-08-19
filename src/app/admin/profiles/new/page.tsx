@@ -47,6 +47,20 @@ export default function NewProfilePage() {
           />
         </div>
 
+        <div>
+          <Field
+            label="Mobile Number"
+            name="phone"
+            type="tel"
+            placeholder="e.g. 98765 43210"
+            errors={state?.errors?.phone}
+          />
+          <p className="mt-1 text-xs text-zinc-500 dark:text-zinc-400">
+            Taken in person, so it is marked verified straight away — no
+            confirmation call needed. Only admins can see it.
+          </p>
+        </div>
+
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
           <div>
             <label className={labelClasses} htmlFor="gender">Gender</label>

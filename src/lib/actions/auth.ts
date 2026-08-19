@@ -4,10 +4,12 @@ import { redirect } from "next/navigation";
 import { createSession, deleteSession } from "@/lib/session";
 import {
   createUser,
+  findUserByPhone,
   findUserByUsername,
   verifyPassword,
 } from "@/lib/data/users";
 import { createProfileForUser } from "@/lib/data/profiles";
+import { normalizeIndianMobile } from "@/lib/phone";
 
 export type AuthFormState =
   | {
@@ -15,6 +17,7 @@ export type AuthFormState =
         name?: string[];
         username?: string[];
         password?: string[];
+        phone?: string[];
         gender?: string[];
         dob?: string[];
         city?: string[];
@@ -31,6 +34,7 @@ export async function signup(
   const name = String(formData.get("name") ?? "").trim();
   const username = String(formData.get("username") ?? "").trim();
   const password = String(formData.get("password") ?? "");
+  const phoneRaw = String(formData.get("phone") ?? "").trim();
   const gender = String(formData.get("gender") ?? "");
   const dob = String(formData.get("dob") ?? "");
   const city = String(formData.get("city") ?? "").trim();
@@ -42,6 +46,12 @@ export async function signup(
     errors.username = ["Username must be at least 3 characters."];
   if (password.length < 3)
     errors.password = ["Password must be at least 3 characters."];
+  const phone = normalizeIndianMobile(phoneRaw);
+  if (!phoneRaw) {
+    errors.phone = ["Mobile number is required."];
+  } else if (!phone) {
+    errors.phone = ["Enter a valid 10-digit Indian mobile number."];
+  }
   if (gender !== "male" && gender !== "female") errors.gender = ["Select a gender."];
   if (!dob) {
     errors.dob = ["Date of birth is required."];
@@ -61,10 +71,20 @@ export async function signup(
   if (existing) {
     return { errors: { username: ["This username is already taken."] } };
   }
+  if (phone && (await findUserByPhone(phone))) {
+    return {
+      errors: {
+        phone: [
+          "This mobile number is already registered. If it is yours, please log in instead.",
+        ],
+      },
+    };
+  }
 
   // Account and profile are created together — every member is browsable,
-  // so there is never an account without a listing.
-  const user = await createUser({ name, username, password });
+  // so there is never an account without a listing. The phone number starts
+  // unverified; the admin marks it verified after the confirmation call.
+  const user = await createUser({ name, username, password, phone });
   await createProfileForUser({
     userId: user.id,
     name,

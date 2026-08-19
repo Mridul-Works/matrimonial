@@ -72,9 +72,13 @@ export default async function AdminMatchesPage({
         ) : (
           <div className="mt-3 grid grid-cols-1 gap-4 lg:grid-cols-2">
             {mutualPairs.map((pair) => (
-              <div
+              // The whole card opens the pair-detail page (full biodata of
+              // both sides plus phone numbers), so the sides inside are
+              // plain text — no nested links.
+              <Link
                 key={`${pair.userIdA}|${pair.userIdB}`}
-                className="rounded-2xl border-2 border-pink-200 bg-linear-to-r from-pink-50/80 to-rose-50/60 p-5 dark:border-pink-900/60 dark:from-pink-950/30 dark:to-zinc-900"
+                href={`/admin/matches/${pair.userIdA}/${pair.userIdB}`}
+                className="block rounded-2xl border-2 border-pink-200 bg-linear-to-r from-pink-50/80 to-rose-50/60 p-5 transition hover:border-pink-300 hover:shadow-md hover:shadow-pink-100/60 dark:border-pink-900/60 dark:from-pink-950/30 dark:to-zinc-900 dark:hover:border-pink-800 dark:hover:shadow-none"
               >
                 <div className="flex items-center gap-3">
                   <MatchSide
@@ -95,9 +99,12 @@ export default async function AdminMatchesPage({
                   />
                 </div>
                 <p className="mt-3 border-t border-pink-200/70 pt-2 text-center text-xs text-zinc-500 dark:border-pink-900/40 dark:text-zinc-400">
-                  Became mutual on {formatDateTime(pair.matchedAt)}
+                  Became mutual on {formatDateTime(pair.matchedAt)} &middot;{" "}
+                  <span className="font-medium text-pink-600 dark:text-pink-300">
+                    Open pair details &rarr;
+                  </span>
                 </p>
-              </div>
+              </Link>
             ))}
           </div>
         )}
@@ -121,7 +128,7 @@ export default async function AdminMatchesPage({
 
         <div className="mt-4">
           <AdminTable
-            columns={["From (member)", "To (member)", "Status", "When"]}
+            columns={["From (member)", "To (member)", "Status", "When", "Details"]}
             rows={filtered.map((i) => {
               const from = userById.get(i.fromUserId);
               const to = userById.get(i.toUserId);
@@ -151,6 +158,13 @@ export default async function AdminMatchesPage({
                   </span>
                 ),
                 formatDateTime(i.createdAt),
+                <Link
+                  key="d"
+                  href={`/admin/matches/${i.fromUserId}/${i.toUserId}`}
+                  className="whitespace-nowrap text-xs font-medium text-pink-600 hover:underline dark:text-pink-300"
+                >
+                  View pair &rarr;
+                </Link>,
               ];
             })}
             emptyLabel={
@@ -202,12 +216,9 @@ function MatchSide({
   }
   return (
     <div className={`min-w-0 flex-1 ${align === "right" ? "text-right" : ""}`}>
-      <Link
-        href={`/profiles/${profile.id}`}
-        className="font-heading text-base text-zinc-900 hover:text-pink-600 dark:text-zinc-50 dark:hover:text-pink-300"
-      >
+      <span className="font-heading text-base text-zinc-900 dark:text-zinc-50">
         {profile.name}
-      </Link>
+      </span>
       <div
         className={`mt-0.5 flex flex-wrap items-center gap-1.5 ${
           align === "right" ? "justify-end" : ""

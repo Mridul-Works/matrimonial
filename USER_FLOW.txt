@@ -83,16 +83,21 @@
 
    Full name
    Username            Password
+   Mobile number       (Indian mobile; the form explains the team will
+                        confirm it with a call, which can take up to 48h,
+                        and that only the admin can ever see it)
    Gender              Date of birth      (must be 18+)
    City                Profession
 
    submit
      |
      +--> validation fails -> error under the offending field
-     |                        (username taken / under 18 / missing field)
+     |                        (username taken / number invalid or already
+     |                         registered / under 18 / missing field)
      |
      +--> success -> account + profile created
                      a code number is assigned automatically (e.g. 78/26)
+                     phone saved as "call pending" until admin verifies it
                      you are logged in
                      -> redirected to /my-profile?welcome=1
 
@@ -255,6 +260,8 @@
  - Reach /admin (redirected back to /profiles)
  - Send an interest to themselves (blocked in the UI and server-side)
  - See who else a given member has liked - only their own interests
+ - See ANY phone number, including on profile pages - numbers live on the
+   user record (not the profile) and surface only in the admin console
  - Edit anyone else's profile
 
 

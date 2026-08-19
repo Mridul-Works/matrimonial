@@ -4,7 +4,13 @@ import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { requireAdmin } from "@/lib/dal";
 import { createProfileForUser, updateProfile } from "@/lib/data/profiles";
-import { createUser, findUserByUsername } from "@/lib/data/users";
+import {
+  createUser,
+  findUserByPhone,
+  findUserByUsername,
+  setPhoneVerified,
+} from "@/lib/data/users";
+import { normalizeIndianMobile } from "@/lib/phone";
 
 export type CreateProfileFormState =
   | {
@@ -27,6 +33,7 @@ export async function createProfileAction(
   const name = String(formData.get("name") ?? "").trim();
   const username = String(formData.get("username") ?? "").trim();
   const password = String(formData.get("password") ?? "");
+  const phoneRaw = String(formData.get("phone") ?? "").trim();
   const gender = String(formData.get("gender") ?? "");
   const dob = String(formData.get("dob") ?? "");
   const heightLabel = String(formData.get("heightLabel") ?? "").trim();
@@ -47,15 +54,33 @@ export async function createProfileAction(
   if (!city) errors.city = ["City is required."];
   if (!profession) errors.profession = ["Profession is required."];
 
+  const phone = normalizeIndianMobile(phoneRaw);
+  if (!phoneRaw) {
+    errors.phone = ["Mobile number is required."];
+  } else if (!phone) {
+    errors.phone = ["Enter a valid 10-digit Indian mobile number."];
+  }
+
   if (username && (await findUserByUsername(username))) {
     errors.username = ["This username is already taken."];
+  }
+  if (phone && (await findUserByPhone(phone))) {
+    errors.phone = ["This mobile number belongs to an existing member."];
   }
 
   if (Object.keys(errors).length > 0) {
     return { errors };
   }
 
-  const user = await createUser({ name, username, password });
+  // Walk-in numbers are taken face-to-face, so they count as verified —
+  // no confirmation call needed.
+  const user = await createUser({
+    name,
+    username,
+    password,
+    phone,
+    phoneVerified: true,
+  });
   await createProfileForUser({
     userId: user.id,
     name,
@@ -87,4 +112,21 @@ export async function createProfileAction(
   revalidatePath("/admin/members");
   revalidatePath("/profiles");
   redirect("/admin/profiles?created=1");
+}
+
+/**
+ * Admin records the outcome of the confirmation call: marks a member's
+ * number verified, or reverts it to pending if it was marked by mistake.
+ */
+export async function setPhoneVerifiedAction(formData: FormData) {
+  await requireAdmin();
+
+  const userId = String(formData.get("userId") ?? "");
+  const verified = String(formData.get("verified") ?? "") === "true";
+  if (!userId) return;
+
+  await setPhoneVerified(userId, verified);
+  // The chip renders on the Members tab and on pair-detail pages, so
+  // refresh the whole admin section rather than tracking each route.
+  revalidatePath("/admin", "layout");
 }
